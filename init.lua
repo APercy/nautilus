@@ -260,7 +260,9 @@ minetest.register_entity("nautilus:boat", {
                 end]]--
             end
             local player = minetest.get_player_by_name(self.owner)
-            player:set_breath(10)
+            if player:get_breath() < 10 then
+                player:set_breath(10)
+            end
             --control
 			accel = nautilus.nautilus_control(self, dtime, hull_direction, longit_speed, accel) or vel
         else
