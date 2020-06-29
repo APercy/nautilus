@@ -115,6 +115,7 @@ function nautilus.attach(self, player)
     --self.object:set_properties({glow = 10})
     local name = player:get_player_name()
     self.driver_name = name
+    self.engine_running = true
     player:set_breath(10)
 
     -- temporary------
@@ -280,14 +281,14 @@ minetest.register_entity("nautilus:boat", {
         else
             -- for some engine error the player can be detached from the submarine, so lets set him attached again
             local can_stop = true
-            --[[if self.owner and self.driver_name and touching_ground == false then
+            if self.owner and self.driver_name then
                 -- attach the driver again
                 local player = minetest.get_player_by_name(self.owner)
                 if player then
                     nautilus.attach(self, player)
                     can_stop = false
                 end
-            end]]--
+            end
 
             if can_stop then
                 --detach player
@@ -464,7 +465,6 @@ minetest.register_entity("nautilus:boat", {
 		elseif not self.driver_name then
             -- no driver => clicker is new driver
             nautilus.attach(self, clicker)
-            self.engine_running = true
 		end
 	end,
 })
