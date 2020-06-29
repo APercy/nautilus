@@ -52,6 +52,9 @@ function nautilus.minmax(v,m)
 	return math.min(math.abs(v),m)*nautilus.sign(v)
 end
 
+-- lets control particle emission frequency
+nautilus.last_light_particle_dtime = 0
+
 --painting
 function nautilus.paint(self, colstr)
     if colstr then
@@ -109,6 +112,7 @@ end
 
 -- attach player
 function nautilus.attach(self, player)
+    --self.object:set_properties({glow = 10})
     local name = player:get_player_name()
     self.driver_name = name
     player:set_breath(10)
@@ -208,6 +212,14 @@ minetest.register_entity("nautilus:boat", {
 
 	on_step = function(self, dtime)
         mobkit.stepfunc(self, dtime)
+        
+        -- fiat lux
+        nautilus.last_light_particle_dtime = nautilus.last_light_particle_dtime + dtime
+        if nautilus.last_light_particle_dtime > 0.3 then
+            nautilus.last_light_particle_dtime = 0
+            -- lets emmit something
+            --minetest.add_particle({pos = self.object:get_pos(), expirationtime = 0.5, glow = 14}) --playername = "singleplayer",
+        end
 
         local accel_y = self.object:get_acceleration().y
         local rotation = self.object:get_rotation()
@@ -430,6 +442,7 @@ minetest.register_entity("nautilus:boat", {
             self.engine_running = false
 
 			-- driver clicked the object => driver gets off the vehicle
+            --self.object:set_properties({glow = 0})
 			self.driver_name = nil
             clicker:set_breath(10)
 			-- sound and animation
@@ -460,10 +473,21 @@ minetest.register_entity("nautilus:boat", {
 -- items
 --
 
+-- blades
+minetest.register_craftitem("nautilus:engine",{
+	description = "Nautilus Engine",
+	inventory_image = "nautilus_icon_engine.png",
+})
+-- cabin
+minetest.register_craftitem("nautilus:cabin",{
+	description = "Cabin for Nautilus",
+	inventory_image = "nautilus_icon_cabin.png",
+})
+
 -- boat
 minetest.register_craftitem("nautilus:boat", {
 	description = "Nautilus",
-	inventory_image = "nautilus_inv.png",
+	inventory_image = "nautilus_icon.png",
     liquids_pointable = true,
 
 	on_place = function(itemstack, placer, pointed_thing)
@@ -498,8 +522,24 @@ if minetest.get_modpath("default") then
 	minetest.register_craft({
 		output = "nautilus:boat",
 		recipe = {
-			{"",                  ""},
-			{"nautilus:hull", "nautilus:engine"},
+			{"",                "",               ""},
+			{"nautilus:engine", "nautilus:cabin", "nautilus:engine"},
+		}
+	})
+	minetest.register_craft({
+		output = "nautilus:engine",
+		recipe = {
+			{"",                    "default:steel_ingot", ""},
+			{"default:steel_ingot", "default:mese_crystal",  "default:steel_ingot"},
+			{"",                    "default:steel_ingot", "default:diamond"},
+		}
+	})
+	minetest.register_craft({
+		output = "nautilus:cabin",
+		recipe = {
+			{"default:steel_ingot", "default:steelblock", "default:steel_ingot"},
+			{"default:steelblock",  "default:glass",      "default:steelblock"},
+			{"default:steel_ingot", "default:steelblock", "default:steel_ingot"},
 		}
 	})
 end
