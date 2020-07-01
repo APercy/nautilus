@@ -214,14 +214,6 @@ minetest.register_entity("nautilus:boat", {
 	on_step = function(self, dtime)
         mobkit.stepfunc(self, dtime)
         
-        -- fiat lux
-        nautilus.last_light_particle_dtime = nautilus.last_light_particle_dtime + dtime
-        if nautilus.last_light_particle_dtime > 0.3 then
-            nautilus.last_light_particle_dtime = 0
-            -- lets emmit something
-            --minetest.add_particle({pos = self.object:get_pos(), expirationtime = 0.5, glow = 14}) --playername = "singleplayer",
-        end
-
         local accel_y = self.object:get_acceleration().y
         local rotation = self.object:get_rotation()
         local yaw = rotation.y
