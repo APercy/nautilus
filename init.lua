@@ -278,6 +278,11 @@ minetest.register_entity("nautilus:boat", {
             end
             --control
 			accel = nautilus.nautilus_control(self, dtime, hull_direction, longit_speed, accel) or vel
+
+            --light
+            --local pos = obj:get_pos()
+            --local node = minetest.get_node(pos)
+            
         else
             -- for some engine error the player can be detached from the submarine, so lets set him attached again
             local can_stop = true
@@ -460,7 +465,7 @@ minetest.register_entity("nautilus:boat", {
 		    clicker:set_eye_offset({x=0,y=0,z=0},{x=0,y=0,z=0})
 		    player_api.set_animation(clicker, "stand")
 		    self.driver = nil
-            self.object:set_acceleration(vector.multiply(nautilus.vector_up, -nautilus.gravity))
+            --self.object:set_acceleration(vector.multiply(nautilus.vector_up, -nautilus.gravity))
         
 		elseif not self.driver_name then
             -- no driver => clicker is new driver
