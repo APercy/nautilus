@@ -498,7 +498,7 @@ function nautilus.put_light(object)
 
 	local r = 6
 	local count = 0
-	for _ = 1, 30 do
+	for _ = 1, 3 do
 		local fpos = {}
 		fpos.x = pos.x + math.random(2 * r + 1) - r - 1
 		fpos.y = pos.y + math.random(2 * r + 1) - r - 1
