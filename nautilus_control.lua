@@ -43,6 +43,11 @@ function nautilus.nautilus_control(self, dtime, hull_direction, longit_speed, ac
                 minetest.chat_send_player(self.driver_name, 'weigh anchor!')
             end
         end
+        if ctrl.up and ctrl.down and nautilus.nautilus_last_time_command > 0.3 and self.energy > 0 then
+            nautilus.nautilus_last_time_command = 0
+            nautilus.put_light(self.object)
+            self.energy = self.energy - 0.005
+        end
 
         if self.anchored == false and self.engine_running == true then
 	        local paddleacc

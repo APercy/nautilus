@@ -25,6 +25,15 @@ nautilus.colors ={
     yellow='#ffe400',
 }
 
+function nautilus.clone_node(node_name)
+	if not (node_name and type(node_name) == 'string') then
+		return
+	end
+
+	local node = minetest.registered_nodes[node_name]
+	return table.copy(node)
+end
+
 dofile(minetest.get_modpath("nautilus") .. DIR_DELIM .. "nautilus_control.lua")
 dofile(minetest.get_modpath("nautilus") .. DIR_DELIM .. "nautilus_fuel_management.lua")
 dofile(minetest.get_modpath("nautilus") .. DIR_DELIM .. "nautilus_custom_physics.lua")
@@ -377,10 +386,14 @@ minetest.register_entity("nautilus:boat", {
         local item_name = ""
         if itmstck then item_name = itmstck:get_name() end
 
-        if is_attached == true and item_name == "biofuel:biofuel" then
-            --refuel
-            nautilus_load_fuel(self, puncher:get_player_name())
-            self.engine_running = true
+        if is_attached == true then
+            if item_name == "biofuel:biofuel" then
+                --refuel
+                nautilus_load_fuel(self, puncher:get_player_name())
+                self.engine_running = true
+            else
+                --nautilus.put_light(self.object)
+            end
         end
 
         if is_attached == false then
@@ -466,9 +479,56 @@ minetest.register_entity("nautilus:boat", {
 	end,
 })
 
---
+-----------
+-- light --
+-----------
+
+function nautilus.put_light(object)
+	local pos = object:getpos()
+	if not pos then
+		return
+	end
+    local rotation = object:get_rotation()
+    rotation.y = rotation.y + math.rad(90)
+    local dist = 12
+    pos.x = pos.x + (math.cos(rotation.y)*dist)
+	pos.y = pos.y - 1
+    pos.z = pos.z + (math.sin(rotation.y)*dist)
+	pos = vector.round(pos)
+
+	local r = 6
+	local count = 0
+	for _ = 1, 30 do
+		local fpos = {}
+		fpos.x = pos.x + math.random(2 * r + 1) - r - 1
+		fpos.y = pos.y + math.random(2 * r + 1) - r - 1
+		fpos.z = pos.z + math.random(2 * r + 1) - r - 1
+		local n = minetest.get_node_or_nil(fpos)
+        if n and n.name == 'default:water_source' then
+			minetest.set_node(fpos, {name='nautilus:water_light'})
+			local timer = minetest.get_node_timer(fpos)
+			timer:set(10, 0)
+			count = count + 1
+		end
+	end
+
+	return count
+end
+
+
+nautilus_newnode = nautilus.clone_node('default:water_source')
+nautilus_newnode.light_source = 14
+nautilus_newnode.liquid_alternative_flowing = 'nautilus:water_light'
+nautilus_newnode.liquid_alternative_source = 'nautilus:water_light'
+nautilus_newnode.on_timer = function(pos)
+	minetest.remove_node(pos)
+end
+minetest.register_node('nautilus:water_light', nautilus_newnode)
+
+
+-----------
 -- items
---
+-----------
 
 -- blades
 minetest.register_craftitem("nautilus:engine",{
