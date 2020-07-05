@@ -4,6 +4,14 @@
 local LONGIT_DRAG_FACTOR = 0.13*0.13
 local LATER_DRAG_FACTOR = 2.0
 
+minetest.register_lbm({
+	name = "nautilus:remove_lights",
+	nodenames = {"nautilus:water_light"},
+	action = function(pos, node)
+		minetest.set_node(pos, {name = "air:air"})
+	end,
+})
+
 nautilus={}
 nautilus.gravity = tonumber(minetest.settings:get("movement_gravity")) or 9.8
 
@@ -496,8 +504,16 @@ function nautilus.put_light(object)
     pos.z = pos.z + (math.sin(rotation.y)*dist)
 	pos = vector.round(pos)
 
-	local r = 6
-	local count = 0
+	local n = minetest.get_node_or_nil(pos)
+    if n and n.name == 'default:water_source' then
+		minetest.set_node(pos, {name='nautilus:water_light'})
+		local timer = minetest.get_node_timer(pos)
+		timer:set(10, 0)
+	end
+
+	--[[
+    local r = 6
+    local count = 0
 	for _ = 1, 3 do
 		local fpos = {}
 		fpos.x = pos.x + math.random(2 * r + 1) - r - 1
@@ -512,7 +528,7 @@ function nautilus.put_light(object)
 		end
 	end
 
-	return count
+	return count]]--
 end
 
 
