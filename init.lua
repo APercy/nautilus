@@ -4,13 +4,13 @@
 local LONGIT_DRAG_FACTOR = 0.13*0.13
 local LATER_DRAG_FACTOR = 2.0
 
-minetest.register_lbm({
+--[[minetest.register_lbm({
 	name = "nautilus:remove_lights",
 	nodenames = {"nautilus:water_light"},
 	action = function(pos, node)
 		minetest.set_node(pos, {name = "air:air"})
 	end,
-})
+})]]--
 
 nautilus={}
 nautilus.gravity = tonumber(minetest.settings:get("movement_gravity")) or 9.8
