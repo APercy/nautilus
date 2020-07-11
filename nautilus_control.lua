@@ -98,14 +98,6 @@ function nautilus.nautilus_control(self, dtime, hull_direction, longit_speed, ac
 		elseif ctrl.left then
 			self.rudder_angle = math.min(self.rudder_angle+60*dtime,rudder_limit)
 		end
-
-        --center steering
-        if longit_speed > 0 then
-            local factor = 1
-            if self.rudder_angle > 0 then factor = -1 end
-            local correction = (rudder_limit*(longit_speed/200)) * factor
-            self.rudder_angle = self.rudder_angle + correction
-        end
 	end
     return retval_accel
 end

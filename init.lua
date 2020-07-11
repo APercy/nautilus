@@ -363,7 +363,18 @@ minetest.register_entity("nautilus:boat", {
 			self.object:set_acceleration(accel)
 		end
 
-		if newyaw~=yaw or newpitch~=pitch or newroll~=roll then self.object:set_rotation({x=newpitch,y=newyaw,z=newroll}) end
+		if newyaw~=yaw or newpitch~=pitch or newroll~=roll then
+            self.object:set_rotation({x=newpitch,y=newyaw,z=newroll})
+        end
+
+        --center steering
+        local rudder_limit = 30
+        if longit_speed > 0 then
+            local factor = 1
+            if self.rudder_angle > 0 then factor = -1 end
+            local correction = (rudder_limit*(longit_speed/200)) * factor
+            self.rudder_angle = self.rudder_angle + correction
+        end
 
         --saves last velocy for collision detection (abrupt stop)
         self.last_vel = self.object:get_velocity()
