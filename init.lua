@@ -515,7 +515,7 @@ function nautilus.put_light(object, name)
 
     if pos then
 	    local n = minetest.get_node_or_nil(pos)
-        minetest.chat_send_player(name, n.name)
+        --minetest.chat_send_player(name, n.name)
         if n and n.name == 'default:water_source' then
 		    minetest.set_node(pos, {name='nautilus:water_light'})
 		    --local timer = minetest.get_node_timer(pos)
