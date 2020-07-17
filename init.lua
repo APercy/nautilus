@@ -508,13 +508,6 @@ function nautilus.put_light(object, name)
 	if not pos then
 		return
 	end
-    --[[local rotation = object:get_rotation()
-    rotation.y = rotation.y + math.rad(90)
-    local dist = 12
-    pos.x = pos.x + (math.cos(rotation.y)*dist)
-	pos.y = pos.y - 1
-    pos.z = pos.z + (math.sin(rotation.y)*dist)
-	pos = vector.round(pos)]]--
 
     local player = minetest.get_player_by_name(name)
     local dir = player:get_look_dir()
@@ -522,10 +515,17 @@ function nautilus.put_light(object, name)
 
     if pos then
 	    local n = minetest.get_node_or_nil(pos)
+        minetest.chat_send_player(name, n.name)
         if n and n.name == 'default:water_source' then
 		    minetest.set_node(pos, {name='nautilus:water_light'})
-		    local timer = minetest.get_node_timer(pos)
-		    timer:set(10, 0)
+		    --local timer = minetest.get_node_timer(pos)
+		    --timer:set(10, 0)
+            minetest.after(10,function(pos)
+			    local node = minetest.get_node_or_nil(pos)
+			    if node and node.name == "nautilus:water_light" then
+				    minetest.swap_node(pos, {name="default:water_source"})
+			    end
+			end, pos)
 	    end
     end
 
