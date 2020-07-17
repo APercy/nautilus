@@ -503,25 +503,31 @@ minetest.register_entity("nautilus:boat", {
 -- light --
 -----------
 
-function nautilus.put_light(object)
+function nautilus.put_light(object, name)
 	local pos = object:getpos()
 	if not pos then
 		return
 	end
-    local rotation = object:get_rotation()
+    --[[local rotation = object:get_rotation()
     rotation.y = rotation.y + math.rad(90)
     local dist = 12
     pos.x = pos.x + (math.cos(rotation.y)*dist)
 	pos.y = pos.y - 1
     pos.z = pos.z + (math.sin(rotation.y)*dist)
-	pos = vector.round(pos)
+	pos = vector.round(pos)]]--
 
-	local n = minetest.get_node_or_nil(pos)
-    if n and n.name == 'default:water_source' then
-		minetest.set_node(pos, {name='nautilus:water_light'})
-		local timer = minetest.get_node_timer(pos)
-		timer:set(10, 0)
-	end
+    local player = minetest.get_player_by_name(name)
+    local dir = player:get_look_dir()
+    pos = nautilus.find_collision(pos,dir)
+
+    if pos then
+	    local n = minetest.get_node_or_nil(pos)
+        if n and n.name == 'default:water_source' then
+		    minetest.set_node(pos, {name='nautilus:water_light'})
+		    local timer = minetest.get_node_timer(pos)
+		    timer:set(10, 0)
+	    end
+    end
 
 	--[[
     local r = 6
@@ -553,6 +559,26 @@ nautilus_newnode.on_timer = function(pos)
 end
 minetest.register_node('nautilus:water_light', nautilus_newnode)
 
+-- [[ from Gundul mod lightup ]]--
+function nautilus.find_collision(pos1,dir)
+	pos1 = mobkit.pos_shift(pos1,vector.multiply(dir,1))
+    local distance = 20
+	local pos2 = mobkit.pos_shift(pos1,vector.multiply(dir,distance))
+	local ray = minetest.raycast(pos1, pos2, true, false)
+			for pointed_thing in ray do
+				if pointed_thing.type == "node" then
+					local dist = math.floor(vector.distance(pos1,pointed_thing.under))
+					pos2 = mobkit.pos_shift(pos1,vector.multiply(dir,dist-1))
+					return pos2
+				end
+				if pointed_thing.type == "object" then
+					local obj = pointed_thing.ref
+					local objpos = obj:get_pos()
+					return objpos
+				end
+			end
+	return nil
+end
 
 -----------
 -- items
