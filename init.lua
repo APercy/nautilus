@@ -372,7 +372,7 @@ minetest.register_entity("nautilus:boat", {
         if longit_speed > 0 then
             local factor = 1
             if self.rudder_angle > 0 then factor = -1 end
-            local correction = (rudder_limit*(longit_speed/200)) * factor
+            local correction = (rudder_limit*(longit_speed/100)) * factor
             self.rudder_angle = self.rudder_angle + correction
         end
 

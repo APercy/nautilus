@@ -31,17 +31,20 @@ function nautilus.nautilus_control(self, dtime, hull_direction, longit_speed, ac
 	if player then
 		local ctrl = player:get_player_control()
 		local max_speed_anchor = 0.2
-        if ctrl.aux1 and nautilus.nautilus_last_time_command > 0.3 and longit_speed < max_speed_anchor and longit_speed > -max_speed_anchor then
-            nautilus.nautilus_last_time_command = 0
-		    if self.anchored == false then
-                self.anchored = true
-                self.object:set_velocity(vector.new())
-                minetest.chat_send_player(self.driver_name, 'anchors away!')
-                self.buoyancy = 0.98
-            else
-                self.anchored = false
-                minetest.chat_send_player(self.driver_name, 'weigh anchor!')
+        if ctrl.aux1 then
+            if nautilus.nautilus_last_time_command > 0.3 and longit_speed < max_speed_anchor and longit_speed > -max_speed_anchor then
+                nautilus.nautilus_last_time_command = 0
+		        if self.anchored == false then
+                    self.anchored = true
+                    self.object:set_velocity(vector.new())
+                    minetest.chat_send_player(self.driver_name, 'anchors away!')
+                    self.buoyancy = 0.98
+                else
+                    self.anchored = false
+                    minetest.chat_send_player(self.driver_name, 'weigh anchor!')
+                end
             end
+            self.rudder_angle = 0
         end
         if ctrl.up and ctrl.down and nautilus.nautilus_last_time_command > 0.3 and self.energy > 0 then
             nautilus.nautilus_last_time_command = 0
