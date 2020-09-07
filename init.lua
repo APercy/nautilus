@@ -473,10 +473,6 @@ minetest.register_entity("nautilus:boat", {
         end
 
 		if name == self.driver_name then
-            local properties = self.object:get_properties()
-            properties.infotext = "Nice submarine of " .. self.owner
-            self.object:set_properties(properties)
-
             self.engine_running = false
 
 			-- driver clicked the object => driver gets off the vehicle
@@ -625,6 +621,10 @@ minetest.register_craftitem("nautilus:boat", {
                 ent.owner = owner
 				boat:set_yaw(placer:get_look_horizontal())
 				itemstack:take_item()
+
+                local properties = ent.object:get_properties()
+                properties.infotext = owner .. " nice submarine"
+                ent.object:set_properties(properties)
 			end
         end
 
