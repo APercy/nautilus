@@ -473,6 +473,10 @@ minetest.register_entity("nautilus:boat", {
         end
 
 		if name == self.driver_name then
+            local properties = self.object:get_properties()
+            properties.infotext = "Nice submarine of " .. self.owner
+            self.object:set_properties(properties)
+
             self.engine_running = false
 
 			-- driver clicked the object => driver gets off the vehicle
