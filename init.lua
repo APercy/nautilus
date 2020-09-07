@@ -210,6 +210,9 @@ minetest.register_entity("nautilus:boat", {
             self.buoyancy = data.stored_buoyancy
             self.driver_name = data.stored_driver_name
             --minetest.debug("loaded: ", self.energy)
+            local properties = self.object:get_properties()
+            properties.infotext = "Nice submarine of " .. data.stored_owner
+            self.object:set_properties(properties)
         end
 
         nautilus.paint(self, self.color)
