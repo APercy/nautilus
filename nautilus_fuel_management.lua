@@ -26,6 +26,15 @@ end,
 	
 })
 
+function nautilus.contains(table, val)
+    for k,v in pairs(table) do
+        if k == val then
+            return v
+        end
+    end
+    return false
+end
+
 function nautilus_load_fuel(self, player_name)
     local player = minetest.get_player_by_name(player_name)
     local inv = player:get_inventory()
@@ -36,7 +45,7 @@ function nautilus_load_fuel(self, player_name)
 
     local stack = nil
     --minetest.debug("fuel: ", item_name)
-    local fuel = motorboat.contains(nautilus.fuel, item_name)
+    local fuel = nautilus.contains(nautilus.fuel, item_name)
     if fuel then
         stack = ItemStack(item_name .. " 1")
 
