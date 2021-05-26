@@ -411,13 +411,9 @@ minetest.register_entity("nautilus:boat", {
         if itmstck then item_name = itmstck:get_name() end
 
         if is_attached == true then
-            if item_name == "biofuel:biofuel" then
-                --refuel
-                nautilus_load_fuel(self, puncher:get_player_name())
-                self.engine_running = true
-            else
-                --nautilus.put_light(self.object)
-            end
+            --refuel
+            nautilus_load_fuel(self, puncher:get_player_name())
+            self.engine_running = true
         end
 
         if is_attached == false then

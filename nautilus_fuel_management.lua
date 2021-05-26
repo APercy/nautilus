@@ -35,6 +35,7 @@ function nautilus_load_fuel(self, player_name)
     if itmstck then item_name = itmstck:get_name() end
 
     local stack = nil
+    --minetest.debug("fuel: ", item_name)
     local fuel = motorboat.contains(nautilus.fuel, item_name)
     if fuel then
         stack = ItemStack(item_name .. " 1")
