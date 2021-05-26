@@ -15,6 +15,7 @@ minetest.register_lbm({                            -- this is to remove old brig
 
 nautilus={}
 nautilus.gravity = tonumber(minetest.settings:get("movement_gravity")) or 9.8
+nautilus.fuel = {['biofuel:biofuel'] = 1,['biofuel:bottle_fuel'] = 1,['biofuel:phial_fuel'] = 0.25, ['biofuel:fuel_can'] = 10}
 
 nautilus.colors ={
     black='#2b2b2b',
@@ -122,10 +123,10 @@ function nautilus.destroy(self)
     minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5},'nautilus:boat')
     --minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5},'default:diamond')
 
-    local total_biofuel = math.floor(self.energy) - 1
+    --[[local total_biofuel = math.floor(self.energy) - 1
     for i=0,total_biofuel do
         minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5},'biofuel:biofuel')
-    end
+    end]]--
 end
 
 -- attach player
