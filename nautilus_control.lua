@@ -54,7 +54,7 @@ function nautilus.nautilus_control(self, dtime, hull_direction, longit_speed, ac
 
         if self.anchored == false and self.engine_running == true then
 	        local paddleacc
-	        if longit_speed < 3.0 and ctrl.up then
+	        if longit_speed < 5.0 and ctrl.up then
 		        paddleacc = 0.5
 	        elseif longit_speed >  -1.0 and ctrl.down then
 		        paddleacc = -0.5
