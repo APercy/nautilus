@@ -224,7 +224,7 @@ minetest.register_entity("nautilus:boat", {
 
         local pointer=minetest.add_entity(pos,'nautilus:pointer')
         local energy_indicator_angle = nautilus.get_pointer_angle(self.energy)
-        pointer:set_attach(self.object,'',{x=0,y=-8.45,z=5.31},{x=0,y=0,z=energy_indicator_angle})
+        pointer:set_attach(self.object,'',nautilus.GAUGE_FUEL_POSITION,{x=0,y=0,z=energy_indicator_angle})
         self.pointer = pointer
 
         self.object:set_armor_groups({immortal=1})
@@ -333,11 +333,11 @@ minetest.register_entity("nautilus:boat", {
 
             local energy_indicator_angle = nautilus.get_pointer_angle(self.energy)
             if self.pointer:get_luaentity() then
-                self.pointer:set_attach(self.object,'',{x=0,y=-8.45,z=5.31},{x=0,y=0,z=energy_indicator_angle})
+                self.pointer:set_attach(self.object,'',nautilus.GAUGE_FUEL_POSITION,{x=0,y=0,z=energy_indicator_angle})
             else
                 --in case it have lost the entity by some conflict
-                self.pointer=minetest.add_entity({x=0,y=-8.45,z=5.31},'nautilus:pointer')
-                self.pointer:set_attach(self.object,'',{x=0,y=-8.45,z=5.31},{x=0,y=0,z=energy_indicator_angle})
+                self.pointer=minetest.add_entity(nautilus.GAUGE_FUEL_POSITION,'nautilus:pointer')
+                self.pointer:set_attach(self.object,'',nautilus.GAUGE_FUEL_POSITION,{x=0,y=0,z=energy_indicator_angle})
             end
         end
         if self.energy <= 0 then
@@ -412,7 +412,7 @@ minetest.register_entity("nautilus:boat", {
 
         if is_attached == true then
             --refuel
-            nautilus_load_fuel(self, puncher:get_player_name())
+            nautilus.load_fuel(self, puncher:get_player_name())
             self.engine_running = true
         end
 
