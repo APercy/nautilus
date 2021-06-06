@@ -223,7 +223,7 @@ minetest.register_entity("nautilus:boat", {
         self.object:set_animation({x = 1, y = 5}, 0, 0, true);
 
         local pointer=minetest.add_entity(pos,'nautilus:pointer')
-        local energy_indicator_angle = nautilus.get_pointer_angle(self.energy)
+        local energy_indicator_angle = nautilus.get_pointer_angle(self.energy, nautilus.MAX_FUEL)
         pointer:set_attach(self.object,'',nautilus.GAUGE_FUEL_POSITION,{x=0,y=0,z=energy_indicator_angle})
         self.pointer = pointer
 
@@ -328,10 +328,10 @@ minetest.register_entity("nautilus:boat", {
         if self.energy > 0 then
             local zero_reference = vector.new()
             local acceleration = nautilus.get_hipotenuse_value(accel, zero_reference)
-            local consumed_power = acceleration/6000
+            local consumed_power = acceleration/nautilus.FUEL_CONSUMPTION
             self.energy = self.energy - consumed_power;
 
-            local energy_indicator_angle = nautilus.get_pointer_angle(self.energy)
+            local energy_indicator_angle = nautilus.get_pointer_angle(self.energy, nautilus.MAX_FUEL)
             if self.pointer:get_luaentity() then
                 self.pointer:set_attach(self.object,'',nautilus.GAUGE_FUEL_POSITION,{x=0,y=0,z=energy_indicator_angle})
             else
