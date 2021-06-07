@@ -1,0 +1,21 @@
+
+# Fuel capacity of nautilus submarine.
+nautilus_max_fuel (Max fuel units) float 10 1 100
+
+# Nautilus submarine fuel consumption ratio.
+nautilus_fuel_consumption (Fuel consumption ratio) int 6000 1
+
+# Enable/disable limited air in submarine
+# default is enabled if vacuum mode is enabled, othervise disabled
+nautilus_air (Max fuel units) bool true
+
+# Air capacity of nautilus submarine.
+# 1 unit per second is consumed
+nautilus_max_air (Max air units) float 1200 1
+
+# Reair on air when cover is opened
+nautilus_reair_on_air (Reair on open) float 200 1
+
+# Air lost when cover is opened under water
+nautilus_open_air_lost (Lost of air when open) float 10 1
+

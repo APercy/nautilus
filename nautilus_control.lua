@@ -3,11 +3,11 @@
 nautilus.nautilus_last_time_command = 0
 nautilus.vector_up = vector.new(0, 1, 0)
 
-function nautilus.get_pointer_angle(energy)
-    local angle = energy * 18
+function nautilus.get_pointer_angle(value, maxvalue)
+    local angle = value/maxvalue * 180
     angle = angle - 90
     angle = angle * -1
-	return angle
+    return angle
 end
 
 function nautilus.check_node_below(obj)

@@ -1,7 +1,9 @@
 --
 -- fuel
 --
-NAUTILUS_GAUGE_FUEL_POSITION = {x=0,y=-8.45,z=5.31}
+nautilus.GAUGE_FUEL_POSITION = {x=0,y=-8.45,z=5.31}
+nautilus.MAX_FUEL = minetest.settings:get("nautilus_max_fuel") or 10
+nautilus.FUEL_CONSUMPTION = minetest.settings:get("nautilus_fuel_consumption") or 6000
 
 minetest.register_entity('nautilus:pointer',{
 initial_properties = {
@@ -35,7 +37,7 @@ function nautilus.contains(table, val)
     return false
 end
 
-function nautilus_load_fuel(self, player_name)
+function nautilus.load_fuel(self, player_name)
     local player = minetest.get_player_by_name(player_name)
     local inv = player:get_inventory()
 
@@ -49,13 +51,20 @@ function nautilus_load_fuel(self, player_name)
     if fuel then
         stack = ItemStack(item_name .. " 1")
 
-        if self.energy < 10 then
+        if self.energy < nautilus.MAX_FUEL then
             local taken = inv:remove_item("main", stack)
-            self.energy = self.energy + fuel
-            if self.energy > 10 then self.energy = 10 end
+            self.energy = self.energy + fuel.amount
+            if self.energy > nautilus.MAX_FUEL then self.energy = nautilus.MAX_FUEL end
+            
+            if fuel.drop then
+                local leftover = inv:add_item("main", fuel.drop)
+                if leftover then
+                    minetest.item_drop(leftover, player, player:get_pos())
+                end
+            end
 
-            local energy_indicator_angle = nautilus.get_pointer_angle(self.energy)
-            self.pointer:set_attach(self.object,'',NAUTILUS_GAUGE_FUEL_POSITION,{x=0,y=0,z=energy_indicator_angle})
+            local energy_indicator_angle = nautilus.get_pointer_angle(self.energy, nautilus.MAX_FUEL)
+            self.pointer:set_attach(self.object,'',nautilus.GAUGE_FUEL_POSITION,{x=0,y=0,z=energy_indicator_angle})
         end
         
         return true
