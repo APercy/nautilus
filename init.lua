@@ -16,6 +16,13 @@ minetest.register_lbm({                            -- this is to remove old brig
 nautilus={}
 nautilus.gravity = tonumber(minetest.settings:get("movement_gravity")) or 9.8
 nautilus.fuel = {['biofuel:biofuel'] = {amount=1},['biofuel:bottle_fuel'] = {amount=1},['biofuel:phial_fuel'] = {amount=0.25}, ['biofuel:fuel_can'] = {amount=10}}
+nautilus.air = {['vacuum:air_bottle'] = {amount=100,drop="vessels:steel_bottle"},}
+
+nautilus.have_air = false
+if minetest.get_modpath("vacuum") then
+    nautilus.have_air = true
+end
+nautilus.have_air = minetest.settings:get_bool("nautilus_air", nautilus.have_air)
 
 nautilus.colors ={
     black='#2b2b2b',
@@ -46,6 +53,7 @@ end
 
 dofile(minetest.get_modpath("nautilus") .. DIR_DELIM .. "nautilus_control.lua")
 dofile(minetest.get_modpath("nautilus") .. DIR_DELIM .. "nautilus_fuel_management.lua")
+dofile(minetest.get_modpath("nautilus") .. DIR_DELIM .. "nautilus_air_management.lua")
 dofile(minetest.get_modpath("nautilus") .. DIR_DELIM .. "nautilus_custom_physics.lua")
 
 
@@ -108,6 +116,7 @@ function nautilus.destroy(self)
 
     local pos = self.object:get_pos()
     if self.pointer then self.pointer:remove() end
+    if self.pointer_air then self.pointer_air:remove() end
 
     self.object:remove()
 
@@ -135,7 +144,9 @@ function nautilus.attach(self, player)
     local name = player:get_player_name()
     self.driver_name = name
     self.engine_running = true
-    player:set_breath(10)
+    if (nautilus.have_air==nil) or (self.air>0) then
+        player:set_breath(10)
+    end
 
     -- temporary------
     self.hp = 50 -- why? cause I can desist from destroy
@@ -173,6 +184,7 @@ minetest.register_entity("nautilus:boat", {
     driver_name = nil,
     sound_handle = nil,
     energy = 0.001,
+    air = 0,
     owner = "",
     static_save = true,
     infotext = "A nice submarine",
@@ -191,6 +203,7 @@ minetest.register_entity("nautilus:boat", {
     get_staticdata = function(self) -- unloaded/unloads ... is now saved
         return minetest.serialize({
             stored_energy = self.energy,
+            stored_air = self.air,
             stored_owner = self.owner,
             stored_hp = self.hp,
             stored_color = self.color,
@@ -204,6 +217,7 @@ minetest.register_entity("nautilus:boat", {
         if staticdata ~= "" and staticdata ~= nil then
             local data = minetest.deserialize(staticdata) or {}
             self.energy = data.stored_energy
+            self.air = data.stored_air
             self.owner = data.stored_owner
             self.hp = data.stored_hp
             self.color = data.stored_color
@@ -226,6 +240,12 @@ minetest.register_entity("nautilus:boat", {
         local energy_indicator_angle = nautilus.get_pointer_angle(self.energy, nautilus.MAX_FUEL)
         pointer:set_attach(self.object,'',nautilus.GAUGE_FUEL_POSITION,{x=0,y=0,z=energy_indicator_angle})
         self.pointer = pointer
+        if nautilus.have_air then
+            local pointer_air=minetest.add_entity(pos,'nautilus:pointer_air')
+            local air_indicator_angle = nautilus.get_pointer_angle(self.air, 200)
+            pointer_air:set_attach(self.object,'',nautilus.GAUGE_AIR_POSITION,{x=0,y=0,z=air_indicator_angle})
+            self.pointer_air = pointer_air
+        end
 
         self.object:set_armor_groups({immortal=1})
 
@@ -288,7 +308,9 @@ minetest.register_entity("nautilus:boat", {
             end
             local player = minetest.get_player_by_name(self.owner)
             if player:get_breath() < 10 then
-                player:set_breath(10)
+                if (nautilus.have_air==nil) or (self.air>0) then
+                    player:set_breath(10)
+                end
             end
             --control
             accel = nautilus.nautilus_control(self, dtime, hull_direction, longit_speed, accel) or vel
@@ -347,6 +369,22 @@ minetest.register_entity("nautilus:boat", {
         end
         ----------------------------
         -- end energy consumption --
+        
+        -- air consumption
+        if nautilus.have_air and (self.air > 0) then
+            if is_attached then
+                self.air = self.air - dtime;
+
+                local air_indicator_angle = nautilus.get_pointer_angle(self.air, nautilus.MAX_AIR)
+                if self.pointer_air:get_luaentity() then
+                    self.pointer_air:set_attach(self.object,'',nautilus.GAUGE_AIR_POSITION,{x=0,y=0,z=air_indicator_angle})
+                else
+                    --in case it have lost the entity by some conflict
+                    self.pointer_air=minetest.add_entity(nautilus.GAUGE_AIR_POSITION,'nautilus:pointer_air')
+                    self.pointer_air:set_attach(self.object,'',nautilus.GAUGE_AIR_POSITION,{x=0,y=0,z=air_indicator_angle})
+                end
+            end
+        end
 
         --roll adjust
         ---------------------------------
@@ -414,6 +452,10 @@ minetest.register_entity("nautilus:boat", {
             --refuel
             nautilus.load_fuel(self, puncher:get_player_name())
             self.engine_running = true
+            --reair
+            if nautilus.have_air then
+                nautilus.load_air(self, puncher:get_player_name())
+            end
         end
 
         if is_attached == false then
@@ -475,7 +517,9 @@ minetest.register_entity("nautilus:boat", {
             -- driver clicked the object => driver gets off the vehicle
             --self.object:set_properties({glow = 0})
             self.driver_name = nil
-            clicker:set_breath(10)
+            if (nautilus.have_air==nil) or (self.air>0) then
+              clicker:set_breath(10)
+            end
             -- sound and animation
             if self.sound_handle then
                 minetest.sound_stop(self.sound_handle)
@@ -658,5 +702,4 @@ if minetest.get_modpath("default") then
         }
     })
 end
-
 
