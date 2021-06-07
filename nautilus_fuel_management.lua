@@ -53,8 +53,15 @@ function nautilus.load_fuel(self, player_name)
 
         if self.energy < nautilus.MAX_FUEL then
             local taken = inv:remove_item("main", stack)
-            self.energy = self.energy + fuel
+            self.energy = self.energy + fuel.amount
             if self.energy > nautilus.MAX_FUEL then self.energy = nautilus.MAX_FUEL end
+            
+            if fuel.drop then
+                local leftover = inv:add_item("main", fuel.drop)
+                if leftover then
+                    minetest.item_drop(leftover, player, player:get_pos())
+                end
+            end
 
             local energy_indicator_angle = nautilus.get_pointer_angle(self.energy, nautilus.MAX_FUEL)
             self.pointer:set_attach(self.object,'',nautilus.GAUGE_FUEL_POSITION,{x=0,y=0,z=energy_indicator_angle})

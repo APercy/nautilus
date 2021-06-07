@@ -15,7 +15,7 @@ minetest.register_lbm({                            -- this is to remove old brig
 
 nautilus={}
 nautilus.gravity = tonumber(minetest.settings:get("movement_gravity")) or 9.8
-nautilus.fuel = {['biofuel:biofuel'] = 1,['biofuel:bottle_fuel'] = 1,['biofuel:phial_fuel'] = 0.25, ['biofuel:fuel_can'] = 10}
+nautilus.fuel = {['biofuel:biofuel'] = {amount=1},['biofuel:bottle_fuel'] = {amount=1},['biofuel:phial_fuel'] = {amount=0.25}, ['biofuel:fuel_can'] = {amount=10}}
 
 nautilus.colors ={
     black='#2b2b2b',
