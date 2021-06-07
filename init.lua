@@ -179,7 +179,7 @@ local function open_cover(self, player)
         if (node_def.liquidtype=="none") and (node_def.drowning==0) then
             if (self.air < nautilus.REAIR_ON_AIR) then
                 self.air = nautilus.REAIR_ON_AIR
-                minetest.chat_send_player(player:get_player_name(), "Submarine has been filled by fresh air.")
+                minetest.chat_send_player(player:get_player_name(), "Nautilus has been filled with fresh air.")
             end
         else
             self.air = self.air - nautilus.OPEN_AIR_LOST
@@ -739,7 +739,23 @@ minetest.register_craftitem("nautilus:boat", {
         local node_below = minetest.get_node(pointed_pos).name
         local nodedef = minetest.registered_nodes[node_below]
         if nodedef.liquidtype ~= "none" then
-            pointed_pos.y=pointed_pos.y+0.2
+            -- minimum water depth has to be 2, for place submarine
+            pointed_pos.y = pointed_pos.y - 1;
+            node_below = minetest.get_node(pointed_pos).name
+            nodedef = minetest.registered_nodes[node_below]
+            if nodedef.liquidtype == "none" then
+                minetest.chat_send_player(placer:get_player_name(), "Nautilus have to be placed on deeper water.")
+                return
+            end
+            -- submarine can be placed only on water surface
+            pointed_pos.y = pointed_pos.y + 2;
+            node_below = minetest.get_node(pointed_pos).name
+            nodedef = minetest.registered_nodes[node_below]
+            if (nodedef.liquidtype ~= "none") or (nodedef.buildable_to==false) then
+                minetest.chat_send_player(placer:get_player_name(), "Nautilus have to be placed on open water surface")
+                return
+            end
+            pointed_pos.y = pointed_pos.y + 1.2
             local boat = minetest.add_entity(pointed_pos, "nautilus:boat")
             if boat and placer then
                 local ent = boat:get_luaentity()
