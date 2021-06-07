@@ -13,6 +13,15 @@ Biofuel mod can be found here: https://github.com/APercy/minetest_biofuel
 -----------------------
 It uses some code from Sailing Kit (by TheTermos)
 
+Thanks to Sfence for the following collaborations: 
+    Makes nautilus mod more configurable by settings (the limit for fuel, air, etc).
+    Little reformated code (replaces some tabs by spaces).
+    Add air support (defaultly available when vacuum mod is enabled)
+    Refill submarine with air when cover is open on water surface
+    Some air lost when the cover is open underwater.
+    Add nautilus place check (cannot be placed on shallow water, have to be placed on the open water surface)
+
+
 License of source code:
 MIT (see file LICENSE) 
 
