@@ -24,6 +24,8 @@ if minetest.get_modpath("vacuum") then
 end
 nautilus.have_air = minetest.settings:get_bool("nautilus_air", nautilus.have_air)
 
+local nautilus_attached = {}
+
 nautilus.colors ={
     black='#2b2b2b',
     blue='#0063b0',
@@ -144,9 +146,10 @@ function nautilus.attach(self, player)
     local name = player:get_player_name()
     self.driver_name = name
     self.engine_running = true
-    if (nautilus.have_air==nil) or (self.air>0) then
+    if (nautilus.have_air==false) then
         player:set_breath(10)
     end
+    nautilus_attached[name] = self.object
 
     -- temporary------
     self.hp = 50 -- why? cause I can desist from destroy
@@ -167,6 +170,26 @@ function nautilus.attach(self, player)
     self.object:set_acceleration(vector.new())
 end
 
+local function open_cover(self, player)
+    local pos = self.object:get_pos()
+    pos.y = pos.y + 1
+    local node = minetest.get_node_or_nil(pos)
+    if node then
+        local node_def = minetest.registered_nodes[node.name]
+        if (node_def.liquidtype=="none") and (node_def.drowning==0) then
+            if (self.air < nautilus.REAIR_ON_AIR) then
+                self.air = nautilus.REAIR_ON_AIR
+                minetest.chat_send_player(player:get_player_name(), "Submarine has been filled by fresh air.")
+            end
+        else
+            self.air = self.air - nautilus.OPEN_AIR_LOST
+            if (self.air<0) then
+                self.air = 0
+            end
+        end
+    end
+end
+
 --
 -- entity
 --
@@ -184,7 +207,8 @@ minetest.register_entity("nautilus:boat", {
     driver_name = nil,
     sound_handle = nil,
     energy = 0.001,
-    air = 0,
+    air = nautilus.REAIR_ON_AIR,
+    breath_time = 0,
     owner = "",
     static_save = true,
     infotext = "A nice submarine",
@@ -278,8 +302,9 @@ minetest.register_entity("nautilus:boat", {
         local vel = self.object:get_velocity()
 
         local is_attached = false
+        local player = nil
         if self.owner then
-            local player = minetest.get_player_by_name(self.owner)
+            player = minetest.get_player_by_name(self.owner)
             
             if player then
                 local player_attach = player:get_attach()
@@ -306,9 +331,8 @@ minetest.register_entity("nautilus:boat", {
                     nautilus.destroy(self)   
                 end]]--
             end
-            local player = minetest.get_player_by_name(self.owner)
-            if player:get_breath() < 10 then
-                if (nautilus.have_air==nil) or (self.air>0) then
+            if (nautilus.have_air==false) then
+                if player:get_breath() < 10 then
                     player:set_breath(10)
                 end
             end
@@ -324,7 +348,6 @@ minetest.register_entity("nautilus:boat", {
             local can_stop = true
             if self.owner and self.driver_name then
                 -- attach the driver again
-                local player = minetest.get_player_by_name(self.owner)
                 if player then
                     nautilus.attach(self, player)
                     can_stop = false
@@ -371,10 +394,10 @@ minetest.register_entity("nautilus:boat", {
         -- end energy consumption --
         
         -- air consumption
-        if nautilus.have_air and (self.air > 0) then
-            if is_attached then
+        if nautilus.have_air and is_attached then
+            if (self.air > 0) then
                 self.air = self.air - dtime;
-
+                
                 local air_indicator_angle = nautilus.get_pointer_angle(self.air, nautilus.MAX_AIR)
                 if self.pointer_air:get_luaentity() then
                     self.pointer_air:set_attach(self.object,'',nautilus.GAUGE_AIR_POSITION,{x=0,y=0,z=air_indicator_angle})
@@ -382,6 +405,38 @@ minetest.register_entity("nautilus:boat", {
                     --in case it have lost the entity by some conflict
                     self.pointer_air=minetest.add_entity(nautilus.GAUGE_AIR_POSITION,'nautilus:pointer_air')
                     self.pointer_air:set_attach(self.object,'',nautilus.GAUGE_AIR_POSITION,{x=0,y=0,z=air_indicator_angle})
+                end
+                
+                self.breath_time = self.breath_time + dtime
+                if (self.breath_time>=0.5) then
+                    local breath = player:get_breath() + 1
+                    local max_breath = player:get_properties().breath_max
+                    if (breath<=max_breath) then
+                        player:set_breath(breath+1)
+                    end
+                    self.breath_time = self.breath_time - 0.5
+                end
+            else
+                self.breath_time = self.breath_time + dtime
+                if (self.breath_time>=1) then
+                    local pos = player:get_pos()
+                    pos.y = pos.y + 1
+                    local node = minetest.get_node_or_nil(pos)
+                    if node then
+                        node = minetest.registered_nodes[node.name]
+                    end
+                    local breath = player:get_breath()
+                    if (node==nil) or (node.drowning==0) then
+                        breath = breath - 5
+                        if (breath<=0) then
+                            breath = 0
+                            local hp = player:get_hp()
+                            hp = hp - 1
+                            player:set_hp(hp, {type="drown"})
+                        end
+                        player:set_breath(breath)
+                    end
+                    self.breath_time = self.breath_time - 1
                 end
             end
         end
@@ -477,7 +532,7 @@ minetest.register_entity("nautilus:boat", {
                     -- end painting
 
                 else -- deal damage
-                    if not self.driver and toolcaps and toolcaps.damage_groups and toolcaps.damage_groups.fleshy then
+                    if not self.driver_name and toolcaps and toolcaps.damage_groups and toolcaps.damage_groups.fleshy then
                         --mobkit.hurt(self,toolcaps.damage_groups.fleshy - 1)
                         --mobkit.make_sound(self,'hit')
                         self.hp = self.hp - 10
@@ -517,7 +572,7 @@ minetest.register_entity("nautilus:boat", {
             -- driver clicked the object => driver gets off the vehicle
             --self.object:set_properties({glow = 0})
             self.driver_name = nil
-            if (nautilus.have_air==nil) or (self.air>0) then
+            if (nautilus.have_air==false) then
               clicker:set_breath(10)
             end
             -- sound and animation
@@ -533,15 +588,45 @@ minetest.register_entity("nautilus:boat", {
             player_api.player_attached[name] = nil
             clicker:set_eye_offset({x=0,y=0,z=0},{x=0,y=0,z=0})
             player_api.set_animation(clicker, "stand")
-            self.driver = nil
+            self.driver_name = nil
             --self.object:set_acceleration(vector.multiply(nautilus.vector_up, -nautilus.gravity))
-        
+            if nautilus.have_air then
+                open_cover(self, clicker)
+            end
+            
+            -- move player up
+            minetest.after(0.1, function(pos)
+                pos.y = pos.y + 2
+                clicker:set_pos(pos)
+            end, clicker:get_pos())
         elseif not self.driver_name then
             -- no driver => clicker is new driver
             nautilus.attach(self, clicker)
+            if nautilus.have_air then
+                open_cover(self, clicker)
+            end
         end
     end,
 })
+
+-- norespawn in submarine when death
+minetest.register_on_dieplayer(function(player, reason)
+        local name = player:get_player_name()
+        local object = nautilus_attached[name]
+        if object then
+            local entity = object:get_luaentity()
+            if (entity.name=="nautilus:boat") then
+                if (entity.driver_name == name) then
+                    player:set_detach()
+                    entity.driver_name = nil
+                    nautilus_attached[player:get_player_name()] = nil
+                    player:set_eye_offset({x = 0, y = 0, z = 0}, {x = 0, y = 0, z = 0})
+                    player_api.player_attached[name] = nil
+                    player_api.set_animation(player, "stand")
+                end
+            end
+        end
+    end)
 
 -----------
 -- light --

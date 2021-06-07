@@ -3,6 +3,8 @@
 --
 nautilus.GAUGE_AIR_POSITION = {x=0,y=-8.45,z=5.31}
 nautilus.MAX_AIR = minetest.settings:get("nautilus_max_air") or 1200
+nautilus.REAIR_ON_AIR = minetest.settings:get("nautilus_reair_on_air") or 200
+nautilus.OPEN_AIR_LOST = minetest.settings:get("nautilus_open_air_lost") or 20
 
 minetest.register_entity('nautilus:pointer_air',{
 initial_properties = {

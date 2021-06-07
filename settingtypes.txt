@@ -13,3 +13,9 @@ nautilus_air (Max fuel units) bool true
 # 1 unit per second is consumed
 nautilus_max_air (Max air units) float 1200 1
 
+# Reair on air when cover is opened
+nautilus_reair_on_air (Reair on open) float 200 1
+
+# Air lost when cover is opened under water
+nautilus_open_air_lost (Lost of air when open) float 10 1
+
