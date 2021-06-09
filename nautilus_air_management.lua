@@ -40,14 +40,13 @@ function nautilus.load_air(self, player_name)
     local item_name = ""
     if itmstck then item_name = itmstck:get_name() end
 
-    local stack = nil
     --minetest.debug("air: ", item_name)
     local air = nautilus.contains(nautilus.air, item_name)
     if air then
-        stack = ItemStack(item_name .. " 1")
+        local stack = ItemStack(item_name .. " 1")
         
         if self.air < nautilus.MAX_AIR then
-            local taken = inv:remove_item("main", stack)
+            inv:remove_item("main", stack)
             self.air = self.air + air.amount
             if self.air > nautilus.MAX_AIR then self.air = nautilus.MAX_AIR end
             

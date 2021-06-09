@@ -45,14 +45,13 @@ function nautilus.load_fuel(self, player_name)
     local item_name = ""
     if itmstck then item_name = itmstck:get_name() end
 
-    local stack = nil
     --minetest.debug("fuel: ", item_name)
     local fuel = nautilus.contains(nautilus.fuel, item_name)
     if fuel then
-        stack = ItemStack(item_name .. " 1")
+        local stack = ItemStack(item_name .. " 1")
 
         if self.energy < nautilus.MAX_FUEL then
-            local taken = inv:remove_item("main", stack)
+            inv:remove_item("main", stack)
             self.energy = self.energy + fuel.amount
             if self.energy > nautilus.MAX_FUEL then self.energy = nautilus.MAX_FUEL end
             
