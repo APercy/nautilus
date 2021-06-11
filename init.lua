@@ -230,6 +230,7 @@ minetest.register_entity("nautilus:boat", {
     energy = 0.001,
     air = nautilus.REAIR_ON_AIR,
     breath_time = 0,
+    drown_time = 0,
     owner = "",
     static_save = true,
     infotext = "A nice submarine",
@@ -493,16 +494,19 @@ minetest.register_entity("nautilus:boat", {
                 
                 self.breath_time = self.breath_time + dtime
                 if (self.breath_time>=0.5) then
-                    local breath = player:get_breath() + 1
+                    local times = math.floor(self.breath_time/0.5)
+                    local breath = player:get_breath() + 1*times
                     local max_breath = player:get_properties().breath_max
                     if (breath<=max_breath) then
                         player:set_breath(breath+1)
                     end
-                    self.breath_time = self.breath_time - 0.5
+                    self.breath_time = self.breath_time - 0.5*times
                 end
             else
                 self.breath_time = self.breath_time + dtime
-                if (self.breath_time>=1) then
+                self.drown_time = self.drown_time + dtime
+                if (self.breath_time>=0.3) then
+                    local times = math.floor(self.breath_time/0.3)
                     local pos = player:get_pos()
                     pos.y = pos.y + 1
                     local node = minetest.get_node_or_nil(pos)
@@ -511,16 +515,20 @@ minetest.register_entity("nautilus:boat", {
                     end
                     local breath = player:get_breath()
                     if (node==nil) or (node.drowning==0) then
-                        breath = breath - 5
+                        breath = breath - 1*times
                         if (breath<=0) then
                             breath = 0
-                            local hp = player:get_hp()
-                            hp = hp - 1
-                            player:set_hp(hp, {type="drown"})
+                            if (self.drown_time>=2) then
+                                self.drown_time = 0
+                                print(self.drown_time)
+                                local hp = player:get_hp()
+                                hp = hp - 1
+                                player:set_hp(hp, {type="drown"})
+                            end
                         end
                         player:set_breath(breath)
                     end
-                    self.breath_time = self.breath_time - 1
+                    self.breath_time = self.breath_time - 0.3*times
                 end
             end
         end
@@ -900,5 +908,7 @@ if minetest.get_modpath("default") then
     })
 end
 
-dofile(minetest.get_modpath("nautilus") .. DIR_DELIM .. "nautilus_variants.lua")
+if minetest.settings:get_bool("nautilus_variants", true) then
+    dofile(minetest.get_modpath("nautilus") .. DIR_DELIM .. "nautilus_variants.lua")
+end
 
