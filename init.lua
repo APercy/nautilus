@@ -25,6 +25,7 @@ if minetest.get_modpath("vacuum") then
 end
 nautilus.have_air = minetest.settings:get_bool("nautilus_air", nautilus.have_air)
 nautilus.hull_deep_limit = minetest.settings:get_bool("nautilus_hull_deep_limit", true)
+nautilus.allow_put_light = minetest.settings:get_bool("nautilus_allow_put_light", true)
 
 local nautilus_attached = {}
 

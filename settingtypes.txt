@@ -25,3 +25,6 @@ nautilus_hull_deep_limit (Enable deep limit) bool true
 # Enable nautius variants
 nautilus_variants (Enable more nautilus variants) bool true
 
+# Enable nautius put light
+nautilus_allow_put_light (Enable nautilus light put) bool true
+
