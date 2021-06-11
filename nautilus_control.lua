@@ -48,7 +48,8 @@ function nautilus.nautilus_control(self, dtime, hull_direction, longit_speed, ac
             end
             self.rudder_angle = 0
         end
-        if ctrl.up and ctrl.down and nautilus.nautilus_last_time_command > 0.3 and self.energy > 0 and nautilus.allow_put_light then
+        if ctrl.up and ctrl.down and nautilus.nautilus_last_time_command > 0.3 and
+                self.energy > 0 and nautilus.allow_put_light then
             nautilus.nautilus_last_time_command = 0
             nautilus.put_light(self.object, self.driver_name)
             self.energy = self.energy - 0.005

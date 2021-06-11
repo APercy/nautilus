@@ -108,7 +108,7 @@ function nautilus.destroy(self, overload)
     end
 
     if self.driver_name then
-        driver = minetest.get_player_by_name(self.driver_name)
+        local driver = minetest.get_player_by_name(self.driver_name)
         -- prevent error when submarine of unlogged driver is destroied by preasure
         if driver then
             driver:set_detach()
