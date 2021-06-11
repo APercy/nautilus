@@ -24,6 +24,8 @@ if minetest.get_modpath("vacuum") then
     nautilus.have_air = true
 end
 nautilus.have_air = minetest.settings:get_bool("nautilus_air", nautilus.have_air)
+nautilus.hull_deep_limit = minetest.settings:get_bool("nautilus_hull_deep_limit", true)
+nautilus.allow_put_light = minetest.settings:get_bool("nautilus_allow_put_light", true)
 
 local nautilus_attached = {}
 
@@ -99,19 +101,22 @@ function nautilus.paint(self, colstr)
 end
 
 -- destroy the boat
-function nautilus.destroy(self, puncher)
+function nautilus.destroy(self, overload)
     if self.sound_handle then
         minetest.sound_stop(self.sound_handle)
         self.sound_handle = nil
     end
 
     if self.driver_name then
-        -- detach the driver first (puncher must be driver)
-        puncher:set_detach()
-        puncher:set_eye_offset({x = 0, y = 0, z = 0}, {x = 0, y = 0, z = 0})
+        driver = minetest.get_player_by_name(self.driver_name)
+        -- prevent error when submarine of unlogged driver is destroied by preasure
+        if driver then
+            driver:set_detach()
+            driver:set_eye_offset({x = 0, y = 0, z = 0}, {x = 0, y = 0, z = 0})
+            -- player should stand again
+            player_api.set_animation(driver, "stand")
+        end
         player_api.player_attached[self.driver_name] = nil
-        -- player should stand again
-        player_api.set_animation(puncher, "stand")
         self.driver_name = nil
     end
 
@@ -130,13 +135,31 @@ function nautilus.destroy(self, puncher)
         minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5},'default:mese_crystal')
     end]]--
 
-    minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5},'nautilus:boat')
+    --minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5},'nautilus:boat')
     --minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5},'default:diamond')
 
     --[[local total_biofuel = math.floor(self.energy) - 1
     for i=0,total_biofuel do
         minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5},'biofuel:biofuel')
     end]]--
+    if overload then
+        local stack = ItemStack(self.item)
+        local item_def = stack:get_definition()
+        
+        if item_def.overload_drop then
+            for _,item in pairs(item_def.overload_drop) do
+                minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5},item)
+            end
+            return
+        end
+    end
+    local stack = ItemStack(self.item)
+    local item_def = stack:get_definition()
+    if self.hull_integrity then
+        local boat_wear = math.floor(65535*(1-(self.hull_integrity/item_def.hull_integrity)))
+        stack:set_wear(boat_wear)
+    end
+    minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5}, stack)
 end
 
 -- attach player
@@ -211,6 +234,7 @@ minetest.register_entity("nautilus:boat", {
     energy = 0.001,
     air = nautilus.REAIR_ON_AIR,
     breath_time = 0,
+    drown_time = 0,
     owner = "",
     static_save = true,
     infotext = "A nice submarine",
@@ -225,6 +249,11 @@ minetest.register_entity("nautilus:boat", {
     anchored = false,
     physics = nautilus.physics,
     --water_drag = 0,
+    surface_level = nil,
+    deep_limit = nil,
+    deep_time = 0,
+    hull_integrity = nil,
+    item = "nautilus:boat",
 
     get_staticdata = function(self) -- unloaded/unloads ... is now saved
         return minetest.serialize({
@@ -236,6 +265,10 @@ minetest.register_entity("nautilus:boat", {
             stored_anchor = self.anchored,
             stored_buoyancy = self.buoyancy,
             stored_driver_name = self.driver_name,
+            stored_surface_level = self.surface_level,
+            stored_deep_limit = self.deep_limit,
+            stored_hull_integrity = self.hull_integrity,
+            stored_item = self.item,
         })
     end,
 
@@ -246,10 +279,16 @@ minetest.register_entity("nautilus:boat", {
             self.air = data.stored_air
             self.owner = data.stored_owner
             self.hp = data.stored_hp
+            self.surface_level = data.stored_surface_level
+            self.deep_limit = data.stored_deep_limit
             self.color = data.stored_color
             self.anchored = data.stored_anchor
             self.buoyancy = data.stored_buoyancy
             self.driver_name = data.stored_driver_name
+            self.surface_level = data.stored_surface_level
+            self.deep_limit = data.stored_deep_limit
+            self.hull_integrity = data.stored_hull_integrity
+            self.item = data.stored_item
             --minetest.debug("loaded: ", self.energy)
             local properties = self.object:get_properties()
             properties.infotext = data.stored_owner .. " nice submarine"
@@ -303,6 +342,7 @@ minetest.register_entity("nautilus:boat", {
         local accel = vector.add(longit_drag,later_drag)
 
         local vel = self.object:get_velocity()
+        local curr_pos = self.object:get_pos()
 
         local is_attached = false
         local player = nil
@@ -316,12 +356,46 @@ minetest.register_entity("nautilus:boat", {
                 end
             end
         end
+        
+        if self.deep_limit then
+            local deep = self.surface_level - curr_pos.y
+            if (deep>self.deep_limit) then
+                self.deep_time = self.deep_time + dtime
+                if (self.deep_time > 1) then
+                    self.deep_time = self.deep_time - 1
+                    deep = deep - self.deep_limit
+                    --minetest.sound_play("nautilus_crushing", {
+                    minetest.sound_play("collision", {
+                        to_player = self.driver_name,
+                        --pos = curr_pos,
+                        --max_hear_distance = 5,
+                        gain = 0.1*deep,
+                        fade = 0.0,
+                        pitch = 1.0,
+                    })
+                    if (self.hull_integrity~=nil) then
+                        self.hull_integrity = self.hull_integrity - deep
+                        if (self.hull_integrity <= 0) then
+                            --minetest.sound_play("nautilus_hull_break", {
+                            minetest.sound_play("default_break_glass", {
+                                to_player = self.driver_name,
+                                --pos = curr_pos,
+                                --max_hear_distance = 5,
+                                gain = 2,
+                                fade = 0.0,
+                                pitch = 1.0,
+                            })
+                            nautilus.destroy(self, true)
+                            return
+                        end
+                    end
+                end
+            end
+        end
 
         if is_attached then
             local impact = nautilus.get_hipotenuse_value(vel, self.last_vel)
             if impact > 1 then
-                --self.damage = self.damage + impact --sum the impact value directly to damage meter
-                --local curr_pos = self.object:get_pos()
                 minetest.sound_play("collision", {
                     to_player = self.driver_name,
                     --pos = curr_pos,
@@ -330,9 +404,22 @@ minetest.register_entity("nautilus:boat", {
                     fade = 0.0,
                     pitch = 1.0,
                 })
-                --[[if self.damage > 100 then --if acumulated damage is greater than 100, adieu
-                    nautilus.destroy(self, puncher)
-                end]]--
+                if self.hull_integrity then
+                    self.hull_integrity = self.hull_integrity - impact
+                    if (self.hull_integrity <= 0) then
+                        --minetest.sound_play("nautilus_hull_break", {
+                        minetest.sound_play("default_break_glass", {
+                            to_player = self.driver_name,
+                            --pos = curr_pos,
+                            --max_hear_distance = 5,
+                            gain = 2,
+                            fade = 0.0,
+                            pitch = 1.0,
+                        })
+                        nautilus.destroy(self, true)
+                        return
+                    end
+                end
             end
             if (nautilus.have_air==false) then
                 if player:get_breath() < 10 then
@@ -415,16 +502,19 @@ minetest.register_entity("nautilus:boat", {
                 
                 self.breath_time = self.breath_time + dtime
                 if (self.breath_time>=0.5) then
-                    local breath = player:get_breath() + 1
+                    local times = math.floor(self.breath_time/0.5)
+                    local breath = player:get_breath() + 1*times
                     local max_breath = player:get_properties().breath_max
                     if (breath<=max_breath) then
                         player:set_breath(breath+1)
                     end
-                    self.breath_time = self.breath_time - 0.5
+                    self.breath_time = self.breath_time - 0.5*times
                 end
             else
                 self.breath_time = self.breath_time + dtime
-                if (self.breath_time>=1) then
+                self.drown_time = self.drown_time + dtime
+                if (self.breath_time>=0.3) then
+                    local times = math.floor(self.breath_time/0.3)
                     local pos = player:get_pos()
                     pos.y = pos.y + 1
                     local node = minetest.get_node_or_nil(pos)
@@ -433,16 +523,20 @@ minetest.register_entity("nautilus:boat", {
                     end
                     local breath = player:get_breath()
                     if (node==nil) or (node.drowning==0) then
-                        breath = breath - 5
+                        breath = breath - 1*times
                         if (breath<=0) then
                             breath = 0
-                            local hp = player:get_hp()
-                            hp = hp - 1
-                            player:set_hp(hp, {type="drown"})
+                            if (self.drown_time>=2) then
+                                self.drown_time = 0
+                                print(self.drown_time)
+                                local hp = player:get_hp()
+                                hp = hp - 1
+                                player:set_hp(hp, {type="drown"})
+                            end
                         end
                         player:set_breath(breath)
                     end
-                    self.breath_time = self.breath_time - 1
+                    self.breath_time = self.breath_time - 0.3*times
                 end
             end
         end
@@ -553,7 +647,7 @@ minetest.register_entity("nautilus:boat", {
             end
 
             if self.hp <= 0 then
-                nautilus.destroy(self, puncher)
+                nautilus.destroy(self, false)
             end
 
         end
@@ -714,6 +808,58 @@ function nautilus.find_collision(pos1,dir)
     return nil
 end
 
+-- item submarine on_place
+nautilus.on_place = function(itemstack, placer, pointed_thing)
+    if pointed_thing.type ~= "node" then
+        return
+    end
+    
+    local pointed_pos = pointed_thing.under
+    local node_below = minetest.get_node(pointed_pos).name
+    local nodedef = minetest.registered_nodes[node_below]
+    if nodedef.liquidtype ~= "none" then
+        -- minimum water depth has to be 2, for place submarine
+        pointed_pos.y = pointed_pos.y - 1;
+        node_below = minetest.get_node(pointed_pos).name
+        nodedef = minetest.registered_nodes[node_below]
+        if nodedef.liquidtype == "none" then
+            minetest.chat_send_player(placer:get_player_name(), "Nautilus have to be placed on deeper water.")
+            return
+        end
+        -- submarine can be placed only on water surface
+        pointed_pos.y = pointed_pos.y + 2;
+        node_below = minetest.get_node(pointed_pos).name
+        nodedef = minetest.registered_nodes[node_below]
+        if (nodedef.liquidtype ~= "none") or (nodedef.buildable_to==false) then
+            minetest.chat_send_player(placer:get_player_name(), "Nautilus have to be placed on open water surface")
+            return
+        end
+        pointed_pos.y = pointed_pos.y + 0.2
+        local boat = minetest.add_entity(pointed_pos, "nautilus:boat")
+        if boat and placer then
+            local ent = boat:get_luaentity()
+            local owner = placer:get_player_name()
+            local item_def = itemstack:get_definition()
+            ent.owner = owner
+            ent.surface_level = pointed_thing.under.y
+            if nautilus.hull_deep_limit then
+              ent.deep_limit = item_def.deep_limit
+            end
+            local wear = (65535-itemstack:get_wear())/65535
+            ent.hull_integrity = item_def.hull_integrity*wear
+            ent.item = itemstack:to_string()
+            boat:set_yaw(placer:get_look_horizontal())
+            itemstack:take_item()
+
+            local properties = ent.object:get_properties()
+            properties.infotext = owner .. " nice submarine"
+            ent.object:set_properties(properties)
+        end
+    end
+
+    return itemstack
+end
+
 -----------
 -- items
 -----------
@@ -730,53 +876,13 @@ minetest.register_craftitem("nautilus:cabin",{
 })
 
 -- boat
-minetest.register_craftitem("nautilus:boat", {
+minetest.register_tool("nautilus:boat", {
     description = "Nautilus",
     inventory_image = "nautilus_icon.png",
     liquids_pointable = true,
+    stack_max = 1,
 
-    on_place = function(itemstack, placer, pointed_thing)
-        if pointed_thing.type ~= "node" then
-            return
-        end
-        
-        local pointed_pos = pointed_thing.under
-        local node_below = minetest.get_node(pointed_pos).name
-        local nodedef = minetest.registered_nodes[node_below]
-        if nodedef.liquidtype ~= "none" then
-            -- minimum water depth has to be 2, for place submarine
-            pointed_pos.y = pointed_pos.y - 1;
-            node_below = minetest.get_node(pointed_pos).name
-            nodedef = minetest.registered_nodes[node_below]
-            if nodedef.liquidtype == "none" then
-                minetest.chat_send_player(placer:get_player_name(), "Nautilus have to be placed on deeper water.")
-                return
-            end
-            -- submarine can be placed only on water surface
-            pointed_pos.y = pointed_pos.y + 2;
-            node_below = minetest.get_node(pointed_pos).name
-            nodedef = minetest.registered_nodes[node_below]
-            if (nodedef.liquidtype ~= "none") or (nodedef.buildable_to==false) then
-                minetest.chat_send_player(placer:get_player_name(), "Nautilus have to be placed on open water surface")
-                return
-            end
-            pointed_pos.y = pointed_pos.y + 1.2
-            local boat = minetest.add_entity(pointed_pos, "nautilus:boat")
-            if boat and placer then
-                local ent = boat:get_luaentity()
-                local owner = placer:get_player_name()
-                ent.owner = owner
-                boat:set_yaw(placer:get_look_horizontal())
-                itemstack:take_item()
-
-                local properties = ent.object:get_properties()
-                properties.infotext = owner .. " nice submarine"
-                ent.object:set_properties(properties)
-            end
-        end
-
-        return itemstack
-    end,
+    on_place = nautilus.on_place,
 })
 
 --
@@ -807,5 +913,9 @@ if minetest.get_modpath("default") then
             {"default:steel_ingot", "default:steelblock", "default:steel_ingot"},
         }
     })
+end
+
+if minetest.settings:get_bool("nautilus_variants", true) then
+    dofile(minetest.get_modpath("nautilus") .. DIR_DELIM .. "nautilus_variants.lua")
 end
 
