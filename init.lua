@@ -109,11 +109,14 @@ function nautilus.destroy(self, overload)
 
     if self.driver_name then
         driver = minetest.get_player_by_name(self.driver_name)
-        driver:set_detach()
-        driver:set_eye_offset({x = 0, y = 0, z = 0}, {x = 0, y = 0, z = 0})
+        -- prevent error when submarine of unlogged driver is destroied by preasure
+        if driver then
+            driver:set_detach()
+            driver:set_eye_offset({x = 0, y = 0, z = 0}, {x = 0, y = 0, z = 0})
+            -- player should stand again
+            player_api.set_animation(driver, "stand")
+        end
         player_api.player_attached[self.driver_name] = nil
-        -- player should stand again
-        player_api.set_animation(driver, "stand")
         self.driver_name = nil
     end
 
