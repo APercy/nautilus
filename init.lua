@@ -15,7 +15,8 @@ minetest.register_lbm({                            -- this is to remove old brig
 
 nautilus={}
 nautilus.gravity = tonumber(minetest.settings:get("movement_gravity")) or 9.8
-nautilus.fuel = {['biofuel:biofuel'] = {amount=1},['biofuel:bottle_fuel'] = {amount=1},['biofuel:phial_fuel'] = {amount=0.25}, ['biofuel:fuel_can'] = {amount=10}}
+nautilus.fuel = {['biofuel:biofuel'] = {amount=1},['biofuel:bottle_fuel'] = {amount=1},
+        ['biofuel:phial_fuel'] = {amount=0.25}, ['biofuel:fuel_can'] = {amount=10}}
 nautilus.air = {['vacuum:air_bottle'] = {amount=100,drop="vessels:steel_bottle"},}
 
 nautilus.have_air = false
@@ -64,8 +65,6 @@ dofile(minetest.get_modpath("nautilus") .. DIR_DELIM .. "nautilus_custom_physics
 -- helpers and co.
 --
 
-local creative_exists = minetest.global_exists("creative")
-
 function nautilus.get_hipotenuse_value(point1, point2)
     return math.sqrt((point1.x - point2.x) ^ 2 + (point1.y - point2.y) ^ 2 + (point1.z - point2.z) ^ 2)
 end
@@ -91,7 +90,7 @@ function nautilus.paint(self, colstr)
         self.color = colstr
         local l_textures = self.initial_properties.textures
         for _, texture in ipairs(l_textures) do
-            local i,indx = texture:find('nautilus_painting.png')
+            local indx = texture:find('nautilus_painting.png')
             if indx then
                 l_textures[_] = "nautilus_painting.png^[multiply:".. colstr
             end
@@ -111,9 +110,7 @@ function nautilus.destroy(self, overload)
         driver = minetest.get_player_by_name(self.driver_name)
         driver:set_detach()
         driver:set_eye_offset({x = 0, y = 0, z = 0}, {x = 0, y = 0, z = 0})
-        if player_api.player_attached[name] then
-          player_api.player_attached[name] = nil
-        end
+        player_api.player_attached[self.driver_name] = nil
         -- player should stand again
         player_api.set_animation(driver, "stand")
         self.driver_name = nil
@@ -182,7 +179,7 @@ function nautilus.attach(self, player)
     player_api.player_attached[name] = true
     -- make the driver sit
     minetest.after(0.2, function()
-        local player = minetest.get_player_by_name(name)
+        player = minetest.get_player_by_name(name)
         if player then
             player_api.set_animation(player, "sit")
         end
@@ -222,7 +219,10 @@ minetest.register_entity("nautilus:boat", {
         selectionbox = {-0.6,0.6,-0.6, 0.6,1,0.6},
         visual = "mesh",
         mesh = "nautilus.b3d",
-        textures = {"nautilus_black.png", "nautilus_painting.png", "nautilus_glass.png", "nautilus_metal.png", "nautilus_metal.png", "nautilus_orange.png", "nautilus_painting.png", "nautilus_red.png", "nautilus_painting.png", "nautilus_helice.png", "nautilus_interior.png", "nautilus_panel.png"},
+        textures = {"nautilus_black.png", "nautilus_painting.png", "nautilus_glass.png",
+                "nautilus_metal.png", "nautilus_metal.png", "nautilus_orange.png",
+                "nautilus_painting.png", "nautilus_red.png", "nautilus_painting.png",
+                "nautilus_helice.png", "nautilus_interior.png", "nautilus_panel.png"},
     },
     textures = {},
     driver_name = nil,
@@ -324,16 +324,17 @@ minetest.register_entity("nautilus:boat", {
         local pitch = rotation.x
         local newpitch = pitch
         local roll = rotation.z
-        local newroll=roll
 
         local hull_direction = minetest.yaw_to_dir(yaw)
         local nhdir = {x=hull_direction.z,y=0,z=-hull_direction.x}        -- lateral unit vector
         local velocity = self.object:get_velocity()
 
         local longit_speed = nautilus.dot(velocity,hull_direction)
-        local longit_drag = vector.multiply(hull_direction,longit_speed*longit_speed*LONGIT_DRAG_FACTOR*-1*nautilus.sign(longit_speed))
+        local longit_drag = vector.multiply(hull_direction,longit_speed*
+                longit_speed*LONGIT_DRAG_FACTOR*-1*nautilus.sign(longit_speed))
         local later_speed = nautilus.dot(velocity,nhdir)
-        local later_drag = vector.multiply(nhdir,later_speed*later_speed*LATER_DRAG_FACTOR*-1*nautilus.sign(later_speed))
+        local later_drag = vector.multiply(nhdir,later_speed*later_speed*
+                LATER_DRAG_FACTOR*-1*nautilus.sign(later_speed))
         local accel = vector.add(longit_drag,later_drag)
 
         local vel = self.object:get_velocity()
@@ -448,9 +449,10 @@ minetest.register_entity("nautilus:boat", {
             end
         end
 
-        if math.abs(self.rudder_angle)>5 then 
+        if math.abs(self.rudder_angle)>5 then
             local turn_rate = math.rad(24)
-            newyaw = yaw + self.dtime*(1 - 1 / (math.abs(longit_speed) + 1)) * self.rudder_angle / 30 * turn_rate * nautilus.sign(longit_speed)
+            newyaw = yaw + self.dtime*(1 - 1 / (math.abs(longit_speed) + 1)) *
+                self.rudder_angle / 30 * turn_rate * nautilus.sign(longit_speed)
         end
 
         -- calculate energy consumption --
@@ -485,11 +487,13 @@ minetest.register_entity("nautilus:boat", {
                 
                 local air_indicator_angle = nautilus.get_pointer_angle(self.air, nautilus.MAX_AIR)
                 if self.pointer_air:get_luaentity() then
-                    self.pointer_air:set_attach(self.object,'',nautilus.GAUGE_AIR_POSITION,{x=0,y=0,z=air_indicator_angle})
+                    self.pointer_air:set_attach(self.object,'',nautilus.GAUGE_AIR_POSITION,
+                            {x=0,y=0,z=air_indicator_angle})
                 else
                     --in case it have lost the entity by some conflict
                     self.pointer_air=minetest.add_entity(nautilus.GAUGE_AIR_POSITION,'nautilus:pointer_air')
-                    self.pointer_air:set_attach(self.object,'',nautilus.GAUGE_AIR_POSITION,{x=0,y=0,z=air_indicator_angle})
+                    self.pointer_air:set_attach(self.object,'',nautilus.GAUGE_AIR_POSITION,
+                            {x=0,y=0,z=air_indicator_angle})
                 end
                 
                 self.breath_time = self.breath_time + dtime
@@ -539,7 +543,7 @@ minetest.register_entity("nautilus:boat", {
         local snormal = {x=sdir.z,y=0,z=-sdir.x}    -- rightside, dot is negative
         local prsr = nautilus.dot(snormal,nhdir)
         local rollfactor = -10
-        newroll = (prsr*math.rad(rollfactor))*later_speed
+        local newroll = (prsr*math.rad(rollfactor))*later_speed
         --minetest.chat_send_all('newroll: '.. newroll)
         ---------------------------------
         -- end roll
@@ -583,8 +587,6 @@ minetest.register_entity("nautilus:boat", {
             -- do not allow other players to remove the object while there is a driver
             return
         end
-
-        local touching_ground, liquid_below = nautilus.check_node_below(self.object)
         
         local is_attached = false
         if puncher:get_attach() == self.object then
@@ -624,7 +626,8 @@ minetest.register_entity("nautilus:boat", {
                     -- end painting
 
                 else -- deal damage
-                    if not self.driver_name and toolcaps and toolcaps.damage_groups and toolcaps.damage_groups.fleshy then
+                    if not self.driver_name and toolcaps and toolcaps.damage_groups and
+                            toolcaps.damage_groups.fleshy then
                         --mobkit.hurt(self,toolcaps.damage_groups.fleshy - 1)
                         --mobkit.make_sound(self,'hit')
                         self.hp = self.hp - 10

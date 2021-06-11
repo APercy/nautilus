@@ -32,7 +32,9 @@ function nautilus.nautilus_control(self, dtime, hull_direction, longit_speed, ac
 		local ctrl = player:get_player_control()
 		local max_speed_anchor = 0.2
         if ctrl.aux1 then
-            if nautilus.nautilus_last_time_command > 0.3 and longit_speed < max_speed_anchor and longit_speed > -max_speed_anchor then
+            if nautilus.nautilus_last_time_command > 0.3 and
+                    longit_speed < max_speed_anchor and
+                    longit_speed > -max_speed_anchor then
                 nautilus.nautilus_last_time_command = 0
 		        if self.anchored == false then
                     self.anchored = true
@@ -80,7 +82,7 @@ function nautilus.nautilus_control(self, dtime, hull_direction, longit_speed, ac
             self.buoyancy = 1.03
         else
             --check if its liquid above
-        	local pos_up = self.object:get_pos()
+            local pos_up = self.object:get_pos()
             pos_up.y = pos_up.y + 2
             local node_up = minetest.get_node(pos_up).name
             local nodedef = minetest.registered_nodes[node_up]
