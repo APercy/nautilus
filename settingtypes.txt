@@ -19,3 +19,6 @@ nautilus_reair_on_air (Reair on open) float 200 1
 # Air lost when cover is opened under water
 nautilus_open_air_lost (Lost of air when open) float 10 1
 
+# Enable hull overload by preasure
+nautilus_hull_deep_limit (Enable deep limit) bool true
+
