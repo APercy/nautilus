@@ -845,8 +845,10 @@ nautilus.on_place = function(itemstack, placer, pointed_thing)
             if nautilus.hull_deep_limit then
               ent.deep_limit = item_def.deep_limit
             end
-            local wear = (65535-itemstack:get_wear())/65535
-            ent.hull_integrity = item_def.hull_integrity*wear
+            if item_def.hull_integrity then
+              local wear = (65535-itemstack:get_wear())/65535
+              ent.hull_integrity = item_def.hull_integrity*wear
+            end
             ent.item = itemstack:to_string()
             boat:set_yaw(placer:get_look_horizontal())
             itemstack:take_item()
