@@ -715,14 +715,16 @@ minetest.register_on_dieplayer(function(player, reason)
         local object = nautilus_attached[name]
         if object then
             local entity = object:get_luaentity()
-            if (entity.name=="nautilus:boat") then
-                if (entity.driver_name == name) then
-                    player:set_detach()
-                    entity.driver_name = nil
-                    nautilus_attached[player:get_player_name()] = nil
-                    player:set_eye_offset({x = 0, y = 0, z = 0}, {x = 0, y = 0, z = 0})
-                    player_api.player_attached[name] = nil
-                    player_api.set_animation(player, "stand")
+            if (entity) then
+                if (entity.name=="nautilus:boat") then
+                    if (entity.driver_name == name) then
+                        player:set_detach()
+                        entity.driver_name = nil
+                        nautilus_attached[player:get_player_name()] = nil
+                        player:set_eye_offset({x = 0, y = 0, z = 0}, {x = 0, y = 0, z = 0})
+                        player_api.player_attached[name] = nil
+                        player_api.set_animation(player, "stand")
+                    end
                 end
             end
         end
