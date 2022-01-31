@@ -343,7 +343,7 @@ minetest.register_entity("nautilus:boat", {
 
         local vel = self.object:get_velocity()
         local curr_pos = self.object:get_pos()
-        self.object:set_pos(curr_pos)
+        self.object:move_to(curr_pos)
 
         local is_attached = false
         local player = nil
