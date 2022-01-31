@@ -162,6 +162,25 @@ function nautilus.destroy(self, overload)
     minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5}, stack)
 end
 
+--returns 0 for old, 1 for new
+function nautilus.detect_player_api(player)
+    local player_proterties = player:get_properties()
+    local mesh = "character.b3d"
+    if player_proterties.mesh == mesh then
+        local models = player_api.registered_models
+        local character = models[mesh]
+        if character then
+            if character.animations.sit.eye_height then
+                return 1
+            else
+                return 0
+            end
+        end
+    end
+
+    return 0
+end
+
 -- attach player
 function nautilus.attach(self, player)
     --self.object:set_properties({glow = 10})
@@ -179,7 +198,11 @@ function nautilus.attach(self, player)
 
     -- attach the driver
     player:set_attach(self.object, "", {x = 0, y = -7, z = -2}, {x = 0, y = 0, z = 0})
-    player:set_eye_offset({x = 0, y = -12, z = 0}, {x = 0, y = -12, z = -5})
+    local eye_y = -12
+    if nautilus.detect_player_api(player) == 1 then
+        eye_y = -5.5
+    end
+    player:set_eye_offset({x = 0, y = eye_y, z = 0}, {x = 0, y = eye_y, z = -5})
     player_api.player_attached[name] = true
     -- make the driver sit
     minetest.after(0.2, function()
