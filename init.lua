@@ -808,10 +808,10 @@ function nautilus.put_light(object, name)
 end
 
 
-nautilus_newnode = nautilus.clone_node('default:water_source')
+nautilus_newnode = nautilus.clone_node('default:ice')
 nautilus_newnode.light_source = 14
-nautilus_newnode.liquid_alternative_flowing = 'nautilus:water_light'
-nautilus_newnode.liquid_alternative_source = 'nautilus:water_light'
+--nautilus_newnode.liquid_alternative_flowing = 'nautilus:water_light'
+--nautilus_newnode.liquid_alternative_source = 'nautilus:water_light'
 nautilus_newnode.on_timer = function(pos)
     minetest.remove_node(pos)
 end
