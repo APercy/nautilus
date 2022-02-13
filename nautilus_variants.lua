@@ -22,7 +22,7 @@ minetest.register_tool("nautilus:boat_wooden", {
 -- boat
 minetest.override_item("nautilus:boat", {
     hull_integrity = 75,
-    deep_limit = 40,
+    deep_limit = 100,
     overload_drop = {"nautilus:engine", "default:steel_ingot 3","default:steelblock 3"},
 })
 
