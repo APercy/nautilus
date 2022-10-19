@@ -100,6 +100,13 @@ function nautilus.paint(self, colstr)
     end
 end
 
+local function give_item(item_name, player)
+    local item = player:get_inventory():add_item("main", item_name .. " " .. 1)
+    if item then
+        minetest.add_item(player:getpos(), item)
+    end
+end
+
 -- destroy the boat
 function nautilus.destroy(self, overload)
     if self.sound_handle then
@@ -120,6 +127,8 @@ function nautilus.destroy(self, overload)
         self.driver_name = nil
     end
 
+    local player = minetest.get_player_by_name(self.owner)
+
     local pos = self.object:get_pos()
     if self.pointer then self.pointer:remove() end
     if self.pointer_air then self.pointer_air:remove() end
@@ -127,39 +136,33 @@ function nautilus.destroy(self, overload)
     self.object:remove()
 
     pos.y=pos.y+2
-    --[[for i=1,7 do
-        minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5},'default:steel_ingot')
-    end
-
-    for i=1,7 do
-        minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5},'default:mese_crystal')
-    end]]--
-
-    --minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5},'nautilus:boat')
-    --minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5},'default:diamond')
-
-    --[[local total_biofuel = math.floor(self.energy) - 1
-    for i=0,total_biofuel do
-        minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5},'biofuel:biofuel')
-    end]]--
     if overload then
         local stack = ItemStack(self.item)
         local item_def = stack:get_definition()
         
         if item_def.overload_drop then
             for _,item in pairs(item_def.overload_drop) do
-                minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5},item)
+                if player then
+                    give_item(item, player)
+                else
+                    minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5},item)
+                end
             end
             return
         end
     end
-    local stack = ItemStack(self.item)
-    local item_def = stack:get_definition()
-    if self.hull_integrity then
-        local boat_wear = math.floor(65535*(1-(self.hull_integrity/item_def.hull_integrity)))
-        stack:set_wear(boat_wear)
+    
+    if player then
+        give_item(self.item, player)
+    else
+        local stack = ItemStack(self.item)
+        local item_def = stack:get_definition()
+        if self.hull_integrity then
+            local boat_wear = math.floor(65535*(1-(self.hull_integrity/item_def.hull_integrity)))
+            stack:set_wear(boat_wear)
+        end
+        minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5}, stack)
     end
-    minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5}, stack)
 end
 
 --returns 0 for old, 1 for new
