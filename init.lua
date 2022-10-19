@@ -100,13 +100,6 @@ function nautilus.paint(self, colstr)
     end
 end
 
-local function give_item(item_name, player)
-    local item = player:get_inventory():add_item("main", item_name .. " " .. 1)
-    if item then
-        minetest.add_item(player:getpos(), item)
-    end
-end
-
 -- destroy the boat
 function nautilus.destroy(self, overload)
     if self.sound_handle then
@@ -143,7 +136,12 @@ function nautilus.destroy(self, overload)
         if item_def.overload_drop then
             for _,item in pairs(item_def.overload_drop) do
                 if player then
-                    give_item(item, player)
+                    local item_to_add = player:get_inventory():add_item("main", item)
+                    if item_to_add then
+                        minetest.add_item(player:getpos(), item_to_add)
+                    else
+                        minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5},item)
+                    end
                 else
                     minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5},item)
                 end
@@ -152,15 +150,23 @@ function nautilus.destroy(self, overload)
         end
     end
     
+    local stack = ItemStack(self.item)
+    local item_def = stack:get_definition()
+    if self.hull_integrity then
+        local boat_wear = math.floor(65535*(1-(self.hull_integrity/item_def.hull_integrity)))
+        stack:set_wear(boat_wear)
+    end
+
     if player then
-        give_item(self.item, player)
-    else
-        local stack = ItemStack(self.item)
-        local item_def = stack:get_definition()
-        if self.hull_integrity then
-            local boat_wear = math.floor(65535*(1-(self.hull_integrity/item_def.hull_integrity)))
-            stack:set_wear(boat_wear)
+        local inv = player:get_inventory()
+        if inv then
+            if inv:room_for_item("main", stack) then
+                inv:add_item("main", stack)
+            else
+                minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5}, stack)
+            end
         end
+    else
         minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5}, stack)
     end
 end
