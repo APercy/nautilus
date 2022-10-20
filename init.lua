@@ -832,19 +832,19 @@ function nautilus.find_collision(pos1,dir)
     local distance = 20
     local pos2 = mobkit.pos_shift(pos1,vector.multiply(dir,distance))
     local ray = minetest.raycast(pos1, pos2, true, false)
-            for pointed_thing in ray do
-                if pointed_thing.type == "node" then
-                    local dist = math.floor(vector.distance(pos1,pointed_thing.under))
-                    pos2 = mobkit.pos_shift(pos1,vector.multiply(dir,dist-1))
-                    return pos2
-                end
-                if pointed_thing.type == "object" then
-                    local obj = pointed_thing.ref
-                    local objpos = obj:get_pos()
-                    return objpos
-                end
-            end
-    return nil
+    for pointed_thing in ray do
+        if pointed_thing.type == "node" then
+            local dist = math.floor(vector.distance(pos1,pointed_thing.under))
+            pos2 = mobkit.pos_shift(pos1,vector.multiply(dir,dist-1))
+            return pos2
+        end
+        if pointed_thing.type == "object" then
+            local obj = pointed_thing.ref
+            local objpos = obj:get_pos()
+            return objpos
+        end
+    end
+    return pos2
 end
 
 -- item submarine on_place
