@@ -254,7 +254,7 @@ minetest.register_entity("nautilus:boat", {
         collisionbox = {-1, -1, -1, 1, 1, 1}, --{-1,0,-1, 1,0.3,1},
         selectionbox = {-0.6,0.6,-0.6, 0.6,1,0.6},
         visual = "mesh",
-        mesh = "nautilus.b3d",
+        mesh = "nautilus_nautilus.b3d",
         textures = {"nautilus_black.png", "nautilus_painting.png", "nautilus_glass.png",
                 "nautilus_metal.png", "nautilus_metal.png", "nautilus_orange.png",
                 "nautilus_painting.png", "nautilus_red.png", "nautilus_painting.png",

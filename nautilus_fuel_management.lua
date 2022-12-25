@@ -11,7 +11,7 @@ initial_properties = {
 	collide_with_objects=false,
 	pointable=false,
 	visual = "mesh",
-	mesh = "pointer.b3d",
+	mesh = "nautilus_pointer.b3d",
 	textures = {"nautilus_interior.png"},
 	},
 	
