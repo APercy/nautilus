@@ -455,8 +455,9 @@ minetest.register_entity("nautilus:boat", {
                 end
             end
             if (nautilus.have_air==false) then
-                if player:get_breath() < 10 then
-                    player:set_breath(10)
+                local max_breath = player:get_properties().breath_max - 1
+                if player:get_breath() < max_breath then
+                    player:set_breath(max_breath)
                 end
             end
             --control
@@ -537,9 +538,9 @@ minetest.register_entity("nautilus:boat", {
                 if (self.breath_time>=0.5) then
                     local times = math.floor(self.breath_time/0.5)
                     local breath = player:get_breath() + 1*times
-                    local max_breath = player:get_properties().breath_max
+                    local max_breath = player:get_properties().breath_max - 1
                     if (breath<=max_breath) then
-                        player:set_breath(breath+1)
+                        player:set_breath(max_breath)
                     end
                     self.breath_time = self.breath_time - 0.5*times
                 end
@@ -567,7 +568,7 @@ minetest.register_entity("nautilus:boat", {
                                 player:set_hp(hp, {type="drown"})
                             end
                         end
-                        player:set_breath(breath)
+                        player:set_breath(player:get_properties().breath_max)
                     end
                     self.breath_time = self.breath_time - 0.3*times
                 end
