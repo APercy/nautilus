@@ -2,7 +2,7 @@ local S = nautilus.S
 
 -- wooden cabin
 minetest.register_craftitem("nautilus:cabin_wooden",{
-    description = S("Wooden Cabin for Nautilus",)
+    description = S("Wooden Cabin for Nautilus"),
     inventory_image = "nautilus_icon_cabin.png",
 })
 
