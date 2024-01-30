@@ -1,0 +1,18 @@
+# textdomain: nautilus
+Nautilus has been filled with fresh air.=
+A nice submarine=
+ nice submarine=
+Nautilus have to be placed on deeper water.=
+Nautilus have to be placed on open water surface=
+Nautilus Engine=
+Cabin for Nautilus=
+Nautilus=
+anchors away!=
+weigh anchor!=
+Wooden Cabin for Nautilus=
+Wooden Nautilus=
+Carbon Steel Nautilus=
+Stainless Steel Cabin for Nautilus=
+Stainless Steel Nautilus=
+Mithril Cabin for Nautilus=
+Mithril Nautilus=

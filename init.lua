@@ -14,6 +14,19 @@ minetest.register_lbm({                            -- this is to remove old brig
     })
 
 nautilus={}
+
+nautilus.S = nil
+
+if(minetest.get_translator ~= nil) then
+    nautilus.S = minetest.get_translator(minetest.get_current_modname())
+
+else
+    nautilus.S = function ( s ) return s end
+
+end
+
+local S = nautilus.S
+
 nautilus.gravity = tonumber(minetest.settings:get("movement_gravity")) or 9.8
 nautilus.fuel = {['biofuel:biofuel'] = {amount=1},['biofuel:bottle_fuel'] = {amount=1},
         ['biofuel:phial_fuel'] = {amount=0.25}, ['biofuel:fuel_can'] = {amount=10}}
@@ -233,7 +246,7 @@ local function open_cover(self, player)
         if (node_def.liquidtype=="none") and (node_def.drowning==0) then
             if (self.air < nautilus.REAIR_ON_AIR) then
                 self.air = nautilus.REAIR_ON_AIR
-                minetest.chat_send_player(player:get_player_name(), "Nautilus has been filled with fresh air.")
+                minetest.chat_send_player(player:get_player_name(), S("Nautilus has been filled with fresh air."))
             end
         else
             self.air = self.air - nautilus.OPEN_AIR_LOST
@@ -269,7 +282,7 @@ minetest.register_entity("nautilus:boat", {
     drown_time = 0,
     owner = "",
     static_save = true,
-    infotext = "A nice submarine",
+    infotext = S("A nice submarine"),
     lastvelocity = vector.new(),
     hp = 50,
     color = "#ffe400",
@@ -323,7 +336,7 @@ minetest.register_entity("nautilus:boat", {
             self.item = data.stored_item
             --minetest.debug("loaded: ", self.energy)
             local properties = self.object:get_properties()
-            properties.infotext = data.stored_owner .. " nice submarine"
+            properties.infotext = data.stored_owner .. S(" nice submarine")
             self.object:set_properties(properties)
         end
 
@@ -863,7 +876,7 @@ nautilus.on_place = function(itemstack, placer, pointed_thing)
         node_below = minetest.get_node(pointed_pos).name
         nodedef = minetest.registered_nodes[node_below]
         if nodedef.liquidtype == "none" then
-            minetest.chat_send_player(placer:get_player_name(), "Nautilus have to be placed on deeper water.")
+            minetest.chat_send_player(placer:get_player_name(), S("Nautilus have to be placed on deeper water."))
             return
         end
         -- submarine can be placed only on water surface
@@ -871,7 +884,7 @@ nautilus.on_place = function(itemstack, placer, pointed_thing)
         node_below = minetest.get_node(pointed_pos).name
         nodedef = minetest.registered_nodes[node_below]
         if (nodedef.liquidtype ~= "none") or (nodedef.buildable_to==false) then
-            minetest.chat_send_player(placer:get_player_name(), "Nautilus have to be placed on open water surface")
+            minetest.chat_send_player(placer:get_player_name(), S("Nautilus have to be placed on open water surface"))
             return
         end
         pointed_pos.y = pointed_pos.y + 0.2
@@ -894,7 +907,7 @@ nautilus.on_place = function(itemstack, placer, pointed_thing)
             itemstack:take_item()
 
             local properties = ent.object:get_properties()
-            properties.infotext = owner .. " nice submarine"
+            properties.infotext = owner .. S(" nice submarine")
             ent.object:set_properties(properties)
         end
     end
@@ -908,18 +921,18 @@ end
 
 -- blades
 minetest.register_craftitem("nautilus:engine",{
-    description = "Nautilus Engine",
+    description = S("Nautilus Engine"),
     inventory_image = "nautilus_icon_engine.png",
 })
 -- cabin
 minetest.register_craftitem("nautilus:cabin",{
-    description = "Cabin for Nautilus",
+    description = S("Cabin for Nautilus"),
     inventory_image = "nautilus_icon_cabin.png",
 })
 
 -- boat
 minetest.register_tool("nautilus:boat", {
-    description = "Nautilus",
+    description = S("Nautilus"),
     inventory_image = "nautilus_icon.png",
     liquids_pointable = true,
     stack_max = 1,
