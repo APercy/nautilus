@@ -1,13 +1,14 @@
+local S = nautilus.S
 
 -- wooden cabin
 minetest.register_craftitem("nautilus:cabin_wooden",{
-    description = "Wooden Cabin for Nautilus",
+    description = S("Wooden Cabin for Nautilus"),
     inventory_image = "nautilus_icon_cabin.png",
 })
 
 -- wooden boat
 minetest.register_tool("nautilus:boat_wooden", {
-    description = "Wooden Nautilus",
+    description = S("Wooden Nautilus"),
     inventory_image = "nautilus_icon.png",
     liquids_pointable = true,
     stack_max = 1,
@@ -34,7 +35,7 @@ minetest.register_craftitem("nautilus:cabin_carbon_steel",{
 
 -- cabron teel boat
 minetest.register_tool("nautilus:boat_carbon_steel", {
-    description = "Carbon Steel Nautilus",
+    description = S("Carbon Steel Nautilus"),
     inventory_image = "nautilus_icon.png",
     liquids_pointable = true,
     stack_max = 1,
@@ -48,13 +49,13 @@ minetest.register_tool("nautilus:boat_carbon_steel", {
 
 -- stainless steel cabin
 minetest.register_craftitem("nautilus:cabin_stainless_steel",{
-    description = "Stainless Steel Cabin for Nautilus",
+    description = S("Stainless Steel Cabin for Nautilus"),
     inventory_image = "nautilus_icon_cabin.png",
 })
 
 -- stainless steel boat
 minetest.register_tool("nautilus:boat_stainless_steel", {
-    description = "Stainless Steel Nautilus",
+    description = S("Stainless Steel Nautilus"),
     inventory_image = "nautilus_icon.png",
     liquids_pointable = true,
     stack_max = 1,
@@ -68,13 +69,13 @@ minetest.register_tool("nautilus:boat_stainless_steel", {
 
 -- mithril cabin
 minetest.register_craftitem("nautilus:cabin_mithril",{
-    description = "Mithril Cabin for Nautilus",
+    description = S("Mithril Cabin for Nautilus"),
     inventory_image = "nautilus_icon_cabin.png",
 })
 
 -- mithril boat
 minetest.register_tool("nautilus:boat_mithril", {
-    description = "Mithril Nautilus",
+    description = S("Mithril Nautilus"),
     inventory_image = "nautilus_icon.png",
     liquids_pointable = true,
     stack_max = 1,

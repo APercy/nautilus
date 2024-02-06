@@ -1,3 +1,5 @@
+local S = nautilus.S
+
 --global constants
 
 nautilus.nautilus_last_time_command = 0
@@ -39,11 +41,11 @@ function nautilus.nautilus_control(self, dtime, hull_direction, longit_speed, ac
 		        if self.anchored == false then
                     self.anchored = true
                     self.object:set_velocity(vector.new())
-                    minetest.chat_send_player(self.driver_name, 'anchors away!')
+                    minetest.chat_send_player(self.driver_name, S('anchors away!'))
                     self.buoyancy = 0.98
                 else
                     self.anchored = false
-                    minetest.chat_send_player(self.driver_name, 'weigh anchor!')
+                    minetest.chat_send_player(self.driver_name, S('weigh anchor!'))
                 end
             end
             self.rudder_angle = 0
