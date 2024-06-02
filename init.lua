@@ -165,6 +165,10 @@ function nautilus.destroy(self, overload)
     local pos = self.object:get_pos()
     if self.pointer then self.pointer:remove() end
     if self.pointer_air then self.pointer_air:remove() end
+
+    local lua_ent = self.object:get_luaentity()
+    local staticdata = lua_ent:get_staticdata(self)
+
     local color = self._color
     local energy = self.energy
 
@@ -193,6 +197,9 @@ function nautilus.destroy(self, overload)
     end
     
     local stack = ItemStack(self.item)
+    local stack_meta = stack:get_meta()
+    stack_meta:set_string("staticdata", staticdata)
+
     local item_def = stack:get_definition()
     --item_def._color = color  --save the last color
     --item_def._energy = energy --save the energy
@@ -898,7 +905,11 @@ nautilus.on_place = function(itemstack, placer, pointed_thing)
             return
         end
         pointed_pos.y = pointed_pos.y + 0.2
-        local boat = minetest.add_entity(pointed_pos, "nautilus:boat")
+
+        local stack_meta = itemstack:get_meta()
+        local staticdata = stack_meta:get_string("staticdata")
+
+        local boat = minetest.add_entity(pointed_pos, "nautilus:boat", staticdata)
         if boat and placer then
             local ent = boat:get_luaentity()
             local owner = placer:get_player_name()
@@ -912,14 +923,12 @@ nautilus.on_place = function(itemstack, placer, pointed_thing)
               local wear = (65535-itemstack:get_wear())/65535
               ent.hull_integrity = item_def.hull_integrity*wear
             end
-            ent.item = itemstack:to_string()
-            if item_def._color then --restore the color
+            ent.item = itemstack:get_name() --to_string()
+            ent.hp = 50  --full again
+            if item_def._color and staticdata == "" then --color
                 ent._color = item_def._color
-                nautilus.paint(ent, ent._color)
             end
-            if item_def._energy then --restore the energy
-                ent.energy = item_def._energy
-            end
+            nautilus.paint(ent, ent._color)
 
             boat:set_yaw(placer:get_look_horizontal())
             itemstack:take_item()
