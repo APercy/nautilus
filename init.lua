@@ -194,8 +194,8 @@ function nautilus.destroy(self, overload)
     
     local stack = ItemStack(self.item)
     local item_def = stack:get_definition()
-    item_def._color = color  --save the last color
-    item_def._energy = energy --save the energy
+    --item_def._color = color  --save the last color
+    --item_def._energy = energy --save the energy
     
     if self.hull_integrity then
         local boat_wear = math.floor(65535*(1-(self.hull_integrity/item_def.hull_integrity)))
