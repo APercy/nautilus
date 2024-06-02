@@ -680,9 +680,10 @@ minetest.register_entity("nautilus:boat", {
         local item_name = ""
         if itmstck then item_name = itmstck:get_name() end
 
+        --refuel
+        if nautilus.load_fuel(self, puncher:get_player_name()) then return end
+
         if is_attached == true then
-            --refuel
-            nautilus.load_fuel(self, puncher:get_player_name())
             self.engine_running = true
             --reair
             if nautilus.have_air then
