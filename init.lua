@@ -29,7 +29,8 @@ local S = nautilus.S
 
 nautilus.gravity = tonumber(minetest.settings:get("movement_gravity")) or 9.8
 nautilus.fuel = {['biofuel:biofuel'] = {amount=1},['biofuel:bottle_fuel'] = {amount=1},
-        ['biofuel:phial_fuel'] = {amount=0.25}, ['biofuel:fuel_can'] = {amount=10}}
+        ['biofuel:phial_fuel'] = {amount=0.25}, ['biofuel:fuel_can'] = {amount=10},
+        ['airutils:biofuel'] = {amount=1},}
 nautilus.air = {['vacuum:air_bottle'] = {amount=100,drop="vessels:steel_bottle"},}
 
 nautilus.have_air = false
@@ -809,25 +810,6 @@ function nautilus.put_light(object, name)
             end, pos)
         end
     end
-
-    --[[
-    local r = 6
-    local count = 0
-    for _ = 1, 3 do
-        local fpos = {}
-        fpos.x = pos.x + math.random(2 * r + 1) - r - 1
-        fpos.y = pos.y + math.random(2 * r + 1) - r - 1
-        fpos.z = pos.z + math.random(2 * r + 1) - r - 1
-        local n = minetest.get_node_or_nil(fpos)
-        if n and n.name == 'default:water_source' then
-            minetest.set_node(fpos, {name='nautilus:water_light'})
-            local timer = minetest.get_node_timer(fpos)
-            timer:set(10, 0)
-            count = count + 1
-        end
-    end
-
-    return count]]--
 end
 
 
