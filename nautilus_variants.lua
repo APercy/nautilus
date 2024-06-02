@@ -13,6 +13,8 @@ minetest.register_tool("nautilus:boat_wooden", {
     liquids_pointable = true,
     stack_max = 1,
     
+    _color = "#869393",
+    _energy = 0,
     hull_integrity = 50,
     deep_limit = 25,
     overload_drop = {"nautilus:engine", "default:bronze_ingot 3"},
@@ -24,6 +26,8 @@ minetest.register_tool("nautilus:boat_wooden", {
 minetest.override_item("nautilus:boat", {
     hull_integrity = 75,
     deep_limit = 100,
+    _color = "#ffe400",
+    _energy = 0,
     overload_drop = {"nautilus:engine", "default:steel_ingot 3","default:steelblock 3"},
 })
 
@@ -40,6 +44,8 @@ minetest.register_tool("nautilus:boat_carbon_steel", {
     liquids_pointable = true,
     stack_max = 1,
     
+    _color = "#869393",
+    _energy = 0,
     hull_integrity = 100,
     deep_limit = 300,
     overload_drop = {"nautilus:engine", "technic:carbon_steel_ingot 3","technic:carbon_steel_block 3"},
@@ -60,6 +66,8 @@ minetest.register_tool("nautilus:boat_stainless_steel", {
     liquids_pointable = true,
     stack_max = 1,
     
+    _color = "#b7b7b7",
+    _energy = 0,
     hull_integrity = 200,
     deep_limit = 900,
     overload_drop = {"nautilus:engine", "technic:stainless_steel_ingot 3","technic:stainless_steel_block 3"},
@@ -80,6 +88,8 @@ minetest.register_tool("nautilus:boat_mithril", {
     liquids_pointable = true,
     stack_max = 1,
     
+    _color = "#3a5ece",
+    _energy = 0,
     hull_integrity = 400,
     deep_limit = nil,
     overload_drop = {"nautilus:engine", "moreores:mithril_ingot 3","moreores:mithril_block 3"},

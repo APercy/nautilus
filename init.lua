@@ -99,11 +99,37 @@ end
 -- lets control particle emission frequency
 nautilus.last_light_particle_dtime = 0
 
+local function textures_copy(textures)
+    local tablecopy = {}
+    for k, v in pairs(textures) do
+      tablecopy[k] = v
+    end
+    return tablecopy
+end
+
 --painting
+local nautilus_default_textures = {"nautilus_black.png",
+    "default_wood.png", --texture of the cabin - must be changed on paint function
+    "nautilus_painting.png",
+    "nautilus_glass.png",
+    "nautilus_metal.png",
+    "nautilus_metal.png",
+    "nautilus_orange.png",
+    "nautilus_painting.png",
+    "nautilus_red.png",
+    "nautilus_painting.png",
+    "nautilus_helice.png",
+    "nautilus_interior.png",
+    "nautilus_panel.png"
+    }
+
 function nautilus.paint(self, colstr)
     if colstr then
-        self.color = colstr
-        local l_textures = self.initial_properties.textures
+        self._color = colstr
+        local l_textures = textures_copy(nautilus_default_textures)
+        if not (self.item == "nautilus:boat_wooden") then
+            l_textures[2] = "nautilus_painting.png" --change the texture to paint it normally
+        end
         for _, texture in ipairs(l_textures) do
             local indx = texture:find('nautilus_painting.png')
             if indx then
@@ -139,6 +165,8 @@ function nautilus.destroy(self, overload)
     local pos = self.object:get_pos()
     if self.pointer then self.pointer:remove() end
     if self.pointer_air then self.pointer_air:remove() end
+    local color = self._color
+    local energy = self.energy
 
     self.object:remove()
 
@@ -166,6 +194,9 @@ function nautilus.destroy(self, overload)
     
     local stack = ItemStack(self.item)
     local item_def = stack:get_definition()
+    item_def._color = color  --save the last color
+    item_def._energy = energy --save the energy
+    
     if self.hull_integrity then
         local boat_wear = math.floor(65535*(1-(self.hull_integrity/item_def.hull_integrity)))
         stack:set_wear(boat_wear)
@@ -261,7 +292,6 @@ end
 --
 -- entity
 --
-
 minetest.register_entity("nautilus:boat", {
     initial_properties = {
         physical = true,
@@ -269,10 +299,7 @@ minetest.register_entity("nautilus:boat", {
         selectionbox = {-0.6,0.6,-0.6, 0.6,1,0.6},
         visual = "mesh",
         mesh = "nautilus_nautilus.b3d",
-        textures = {"nautilus_black.png", "nautilus_painting.png", "nautilus_glass.png",
-                "nautilus_metal.png", "nautilus_metal.png", "nautilus_orange.png",
-                "nautilus_painting.png", "nautilus_red.png", "nautilus_painting.png",
-                "nautilus_helice.png", "nautilus_interior.png", "nautilus_panel.png"},
+        textures = textures_copy(nautilus_default_textures),
     },
     textures = {},
     driver_name = nil,
@@ -286,7 +313,7 @@ minetest.register_entity("nautilus:boat", {
     infotext = S("A nice submarine"),
     lastvelocity = vector.new(),
     hp = 50,
-    color = "#ffe400",
+    _color = "#ffe400",
     rudder_angle = 0,
     timeout = 0;
     buoyancy = 0.98,
@@ -307,7 +334,7 @@ minetest.register_entity("nautilus:boat", {
             stored_air = self.air,
             stored_owner = self.owner,
             stored_hp = self.hp,
-            stored_color = self.color,
+            stored_color = self._color,
             stored_anchor = self.anchored,
             stored_buoyancy = self.buoyancy,
             stored_driver_name = self.driver_name,
@@ -327,7 +354,7 @@ minetest.register_entity("nautilus:boat", {
             self.hp = data.stored_hp
             self.surface_level = data.stored_surface_level
             self.deep_limit = data.stored_deep_limit
-            self.color = data.stored_color
+            self._color = data.stored_color
             self.anchored = data.stored_anchor
             self.buoyancy = data.stored_buoyancy
             self.driver_name = data.stored_driver_name
@@ -341,7 +368,7 @@ minetest.register_entity("nautilus:boat", {
             self.object:set_properties(properties)
         end
 
-        nautilus.paint(self, self.color)
+        nautilus.paint(self, self._color)
         local pos = self.object:get_pos()
 
         --animation load - stoped
@@ -885,6 +912,14 @@ nautilus.on_place = function(itemstack, placer, pointed_thing)
               ent.hull_integrity = item_def.hull_integrity*wear
             end
             ent.item = itemstack:to_string()
+            if item_def._color then --restore the color
+                ent._color = item_def._color
+                nautilus.paint(ent, ent._color)
+            end
+            if item_def._energy then --restore the energy
+                ent.energy = item_def._energy
+            end
+
             boat:set_yaw(placer:get_look_horizontal())
             itemstack:take_item()
 
