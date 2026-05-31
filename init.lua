@@ -60,6 +60,11 @@ nautilus.colors ={
     violet='#a437ff',
     white='#FFFFFF',
     yellow='#ffe400',
+    -- NEW: Mineclonia colors that were missing (thanks PsyMops)
+    light_blue = "#258ec9",    -- Light blue dye
+    lime = "#60ac19",          -- Lime dye (bright green)
+    purple = "#6821a0",        -- Purple dye (similar to violet)
+    silver = "#818177",        -- Silver/light grey dye
 }
 
 function nautilus.clone_node(node_name)
@@ -122,6 +127,29 @@ local nautilus_default_textures = {"nautilus_black.png",
     "nautilus_interior.png",
     "nautilus_panel.png"
     }
+
+
+local function dye_paint(self, player, itmstck, item_name)
+    local split = string.split(item_name, ":")
+    local indx, _
+    if split[1] then _,indx = split[1]:find('dye') end
+    if indx then
+        --core.chat_send_all("name: "..dump(item_name))
+        local color = split[2]
+        --core.chat_send_all("color: "..dump(color))
+        local colstr = nautilus.colors[color]
+        --core.chat_send_all("colstr: "..dump(colstr))
+        if colstr then
+            nautilus.paint(self, colstr)
+            itmstck:set_count(itmstck:get_count()-1)
+            if player then
+                player:set_wielded_item(itmstck)
+            end
+            return true
+        end
+    end
+    return false
+end
 
 function nautilus.paint(self, colstr)
     if colstr then
@@ -535,6 +563,7 @@ core.register_entity("nautilus:boat", {
             end
             --control
             accel = nautilus.nautilus_control(self, dtime, hull_direction, longit_speed, accel) or vel
+            --core.chat_send_all(dump(accel))
 
             --light
             --local pos = obj:get_pos()
@@ -727,21 +756,8 @@ core.register_entity("nautilus:boat", {
 
             -- deal with painting or destroying
             if itmstck then
-                local _,indx = item_name:find('dye:')
-                if indx then
-
-                    --lets paint!!!!
-                    local color = item_name:sub(indx+1)
-                    local colstr = nautilus.colors[color]
-                    --core.chat_send_all(color ..' '.. dump(colstr))
-                    if colstr then
-                        nautilus.paint(self, colstr)
-                        itmstck:set_count(itmstck:get_count()-1)
-                        puncher:set_wielded_item(itmstck)
-                    end
-                    -- end painting
-
-                else -- deal damage
+                if dye_paint(self, puncher, itmstck, item_name) == false then
+                    -- deal damage
                     if not self.driver_name and toolcaps and toolcaps.damage_groups and
                             toolcaps.damage_groups.fleshy then
                         --mobkit.hurt(self,toolcaps.damage_groups.fleshy - 1)
