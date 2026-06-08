@@ -319,7 +319,7 @@ function nautilus.attach(self, player)
         player = core.get_player_by_name(name)
         if player then
             if nautilus.is_minetest then
-                nautilus.set_animation(player, "sit")
+                player_api.set_animation(player, "sit")
             elseif nautilus.is_mcl then
                 mcl_player.player_set_animation(player, "sit" , 30)
             end
