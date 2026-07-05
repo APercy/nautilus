@@ -42,6 +42,11 @@ nautilus.have_air = core.settings:get_bool("nautilus_air", nautilus.have_air)
 nautilus.hull_deep_limit = core.settings:get_bool("nautilus_hull_deep_limit", true)
 nautilus.allow_put_light = core.settings:get_bool("nautilus_allow_put_light", true)
 
+nautilus.has_3darmor = false
+if core.get_modpath("3d_armor") then
+    nautilus.has_3darmor = true
+end
+
 local nautilus_attached = {}
 
 nautilus.colors ={
@@ -274,14 +279,18 @@ function nautilus.detect_player_api(player)
         local models = player_api.registered_models
         local character = models[mesh]
         if character then
-            if character.animations.sit.eye_height then
+            if character.animations.sit.eye_height or nautilus.has_3darmor then
+                --core.chat_send_all("new")
                 return 1
             else
+                --core.chat_send_all("old")
                 return 0
             end
         end
     end
-
+    
+    if nautilus.has_3darmor then return 1 end
+    
     return 0
 end
 
